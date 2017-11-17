@@ -31,6 +31,26 @@ only string validations and string prompt sub-packages, which will call
 the miminimal set of common code and be ready to use with very little
 footprint added to the project.
 
+Eventually both **uput/valid** (which includes *all*( **uput/valid/*\** *sub-packages*) and any subset of individual *valid* sub-packages will rely on a minimimal common base under a shared **uput/valid/base** but this is not yet implemented. The effort is being made so that **uput/valid** will be useful for small scripts to large monolithic applications.
+
+        // 'valid' Package
+        // The minimum base needed by the sub-packages
+        // that carefully tries to declare little as possible
+        // globally to reduce additional memory use.
+        import (
+          valid "lib/uput/valid"
+        )
+        // 'valid' Sub-packages
+        // Sub-packages allow developers to only include
+        // data types being validated in their codebase
+        // to limit additional lines of code added.
+        import (
+          validstring "lib/uput/valid/str"
+          validstring "lib/uput/valid/int"
+          validerrors "lib/uput/valid/errs"
+        )
+
+
 The library is designed around the fact that messages would be localized
 but also delegates the responsibilty of how localizaiton *(i18n)* will occur to
 other parts of the application to acheive higher flexibility. No i18n

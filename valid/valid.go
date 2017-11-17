@@ -11,61 +11,56 @@ import (
 type dataType int
 
 const (
-	stringType dataType = iota
-	intType
-	uintType
-	mapType
-	boolType
-	timeType
+	StringType dataType = iota
+	IntType
+	UintType
+	MapType
+	BoolType
+	TimeType
 )
 
 //type ValidateStringFunction func(input string) (output string, errors []error)
 type InputData struct {
-	dataType
-	input       interface{}
-	fieldName   string
-	validations int
+	DataType  dataType
+	input     interface{}
+	fieldName string
 
-	stringData string
-	intData    int
-	uintData   uint
-	boolType   bool
-	timeType   *time.Time
-	mapData    map[interface{}]interface{}
+	StringData string
+	IntData    int
+	UintData   uint
+	BoolType   bool
+	TimeType   *time.Time
+	MapData    map[interface{}]interface{}
 
-	errors        []error
-	errorMessages map[string]string
+	Errors        []error
+	ErrorMessages map[string]string
 	//validations   map[string]ValidateStringFunction
+}
+
+type Input interface {
+	IsValid()
 }
 
 //
 // Error Functions
-func (input InputData) AppendErrorMessages(errorMessages map[string]string) InputData {
-	for key, value := range errorMessages {
-		// valid.IfKey.IsBetween(2, 12)
-		if len(key) >= 2 && len(key) <= 12 {
-			// valid.IfValue.IsBetween(2, 32)
-			if len(key) >= 2 && len(key) <= 32 {
-				input.errorMessages[key] = value
-			}
-		}
+func (input InputData) AddError(key, value string) InputData {
+	message := input.ErrorMessages[key]
+	if len(value) > 0 {
+		message += ": [ " + value + " ]"
 	}
+	input.Errors = append(input.Errors, errors.New(message))
 	return input
 }
 
-func (input InputData) AddErrorMessage(key string) InputData {
-	return append(input.errors, errors.New(input.errorMessages[key]))
-}
-
 // Development Printing (remove later, don't assume logging style)
-func PrintErrors(errors []error) {
+func (input InputData) PrintErrors() {
 	// TODO: Obviously should just be marshalling to JSON and printing
 	// but this is temporary anyways
-	if len(errors) > 0 {
+	if len(input.Errors) > 0 {
 		fmt.Println("{")
-		fmt.Println("  \"error_count\": \"" + strconv.Itoa(len(errors)) + ",")
+		fmt.Println("  \"error_count\": \"" + strconv.Itoa(len(input.Errors)) + ",")
 		fmt.Println("  \"errors\": {")
-		for _, err := range errors {
+		for _, err := range input.Errors {
 			fmt.Println("    \"string\": \"" + err.Error() + "\",")
 		}
 		fmt.Println("  }")
@@ -76,11 +71,11 @@ func PrintErrors(errors []error) {
 //
 // Output Function
 func (input InputData) IsValid() (bool, interface{}, []error) {
-	if input.dataType == stringType {
-		return (len(input.errors) == 0), input.stringData, input.errors
+	if input.DataType == StringType {
+		return (len(input.Errors) == 0), input.StringData, input.Errors
 	} else {
-		input.errors = append(input.errors, errors.New("unknown data type"))
-		return false, nil, input.errors
+		input.Errors = append(input.Errors, errors.New("unknown data type"))
+		return false, nil, input.Errors
 	}
 }
 
@@ -88,21 +83,21 @@ func (input InputData) IsValid() (bool, interface{}, []error) {
 // Input Functions
 func IfString(input string) InputData {
 	return InputData{
-		dataType:      stringType,
-		stringData:    input,
-		errorMessages: stringErrorMessages,
+		DataType:      StringType,
+		StringData:    input,
+		ErrorMessages: make(map[string]string),
 	}
 }
 func IfInt(input int) InputData {
 	return InputData{
-		dataType: intType,
-		intData:  input,
+		DataType: IntType,
+		IntData:  input,
 	}
 }
 func IfUInt(input uint) InputData {
 	return InputData{
-		dataType: uintType,
-		uintData: input,
+		DataType: UintType,
+		UintData: input,
 	}
 }
 func IfMap(input map[interface{}]interface{}) InputData {
@@ -125,8 +120,8 @@ func IfMap(input map[interface{}]interface{}) InputData {
 		// Empty/Nil Map will likely fail most validaitons
 	}
 	return InputData{
-		dataType: mapType,
-		mapData:  input,
+		DataType: MapType,
+		MapData:  input,
 	}
 }
 
@@ -137,7 +132,7 @@ func Validate(input interface{}) InputData {
 	//	IfString(string(input))
 	//}
 	return InputData{
-		dataType: mapType,
+		DataType: MapType,
 		//mapData:  input,
 	}
 }
