@@ -5,7 +5,10 @@ collide with user interface) is a library built to handle input in a
 streamlined way from command-line.
 
 Aim at being minimal and flexible enough to provide user input
-functionality from basic scripts to monolithic web applications
+functionality from basic scripts to monolithic applications. The library
+aims at being as feature rich and unimpiniated as possible to acheive
+maximum flexibility. The library strives to only be opiniated on matters of
+security.
 
 **Features include:**
 
@@ -14,8 +17,9 @@ functionality from basic scripts to monolithic web applications
 * User prompts for a variety of data types including: boolean, string list, string multiselect, string path, and more...
 * Localization (i18n) support that is not opininated and able to play nicely with existing implementation.
 * Pre-validation and Post-validation transformations to prepare data for validation and saving into databases.
-* Support for *single variables* and *structs* using supporting different methods
-* Variety of type validation; ranging from common to niche, impelemented as sub-packages to be imported as needed.
+* Support for *single variables* and *structs* using supporting two different methods, built from researching existing popular implementations.
+* Variety of specific type validation within the builtin data types; ranging from common to niche, impelemented as sub-packages to be imported as needed.
+* Relying on stdlibs like unicode over heavy reliance on regex.
 
 All functionality will be implemented as sub-packages, with only a minimal
 set of functionality required to use any specific sub-package. For
@@ -26,7 +30,8 @@ footprint added to the project.
 
 The library is designed around the fact that messages would be localized
 but also delegates the responsibilty of how localizaiton *(i18n)* will occur to
-other parts of the application to acheive higher flexibility.
+other parts of the application to acheive higher flexibility. No i18n
+libraries are used, the developer passes their messages.
 
 Proper user input procedure goes beyond just a pretty prompt, it
 requires a consistent pipeline that the developer can hook functions
@@ -92,8 +97,11 @@ all existing available projects on both Github and Gitlab I have
 collected the best features, implemented them in a modular way so that a
 minimal set of features could be used without including the entire set.
 
-Of the existing libraries there the first main distinction is if
-validation is for structs or for individual variables.
+Of the existing libraries, the most obvious way to differentiate
+impelementations is if validation is aimed at structs or individual variables.
+
+**uput** aims to provide both, in a way that they can be included
+separately, to fit the needs of the developer and avoid codebase bloat.
 
 **Common issues**
 
@@ -127,16 +135,46 @@ Chaining feels like the best method for one-off validation of a variable inline 
 There are limitations but one could fallback to schema based validation if the software is complex enough to warrant it.
 
 
+Both methods are defining a schema, the primary difference is that
+*chaining method* is defining the schema inline, whereas the *schema
+method* is defining a set of rules as a "validate"-er or defining the
+schema as tags during struct definition.
+
 ### Single Variable Validation
 The best way to handle single variable validation is by having a
 recursively returned validation function that allows chaining.
 
+    // API is not solidified, and subject to change
+    isValid, userInput, errs := valid.IfString("test string").IsContaining("cool").IsLessThan(5).IsIn([]string{"test", "best", "mega"}).NoNumeric().IsEmpty().IsValid()
+    if isValid {
+	    valid.PrintErrors(errs)
+		} else {
+	    fmt.Println("validated user input is:", userInput)
+    }
 
-      isValid, userInput, errs := valid.IfString("t0").IsContaining("cool").IsLessThan(5).IsIn([]string{"test", "best", "mega"}).NoNumeric().IsEmpty().IsValid()
-			if len(errs) > 0 {
-				valid.PrintErrors(errs)
-			} else {
-				fmt.Println("validated and usable userInput is:", userInput)
+Validations for a given data type, for example, *string*:
+
+    [ IsEmpty(), IsBetween(4, 255), IsNumeric, NotAlphabetic, ... ]
+
+Are called in a chain between the input functions:
+
+    [ IfString(s string), IfInt(i int), IfUint(u uint), IfMap(m map[string]string) ]
+
+And output function:
+
+    [ IsValid(errorMessages map[string]string) (bool, interface{}, []error) ]
+
+After the input function and before validation, *transformation functions*
+can be called to normalize data, preparing it for validation, or after
+validation to prepare data for use, like saving into a DB.
+
+Beyond starting with input and ending with output, there are no strict
+rules and any number of validations and transformations can be called.
+
+*The API is not solidified yet, as the package is still under active
+development, and is subject to change. If you have suggestions, please
+create an issue to initiate a discussion on relevant topics.*
+
 
 ### Struct Validation
 There are two common methods to initializing and specifying struct based
@@ -145,12 +183,11 @@ existing tag system within the struct, which is nice because it is
 consistent with other functionality.
 
 A few other libraries like ozzo prefers a **Schema based** *(sometimes
-called rules)* which is implemented by defining a schema separate from
-the struct.
+called rules)* which is implemented by defining a schema "validate"-er
+type separate from any one specific struct.
 
-Each methodology has benefits and because of this, each methodology is
-implemented as sub-packages, allowing the developer to choose one or both
-methods.
+Each methodology has benefits and because of this, to avoid being too
+opinionated, each methodology is implemented as sub-packages, allowing the developer to choose one or both methods.
 
 
 ## Transformations
@@ -158,6 +195,9 @@ Transformations are necessarily to prepare data for validation or
 prepare data for use after validation.
 
 
-
-
+## Under Development
+Not all features are implemented yet, as of writing only the string
+validations have begun active development. The API is not stabilized,
+the library is not yet 0.1.0 and is subject to change. Pull requests are
+welcome.
 
