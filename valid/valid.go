@@ -8,16 +8,177 @@ import (
 	"time"
 )
 
-type dataType int
+//
+// Reflect Notes:
+//
+// reflect.Value has a function Interface() that converts it to interface{}
+// 		Keep in mind that a struct can not have more than 32 methods:
+// 		func (v Value) NumMethod() int
+// 			NumMethod returns the number of exported methods in the value's method set.
+//
+// 		func (v Value) OverflowInt(x int64) bool
+// 			OverflowInt reports whether the int64 x cannot be represented by v's type.
+// 			It panics if v's Kind is not Int, Int8, int16, Int32, or Int64.
+//
+// 		Use this for Uint, Float, Int
+//
+// 		func (v Value) Pointer() uinptr
+//      Pointer returns v's value as a uintptr. It returns uintptr instead of
+//      unsafe.Pointer so that code using reflect cannot obtain unsafe.Pointers
+//      without importing the unsafe package explicitly. It panics if v's Kind is
+// 			not Chan, Func, Map, Ptr, Slice, or UnsafePointer.
+//
+// 			The only guarantee is that the result is zero if and only if v is a nil
+// 			func Value.
+//
+// 			If v's Kind is Slice, the returned pointer is to the first element of the
+// 			slice. If the slice is nil the returned value is 0. If the slice is empty
+// 			but non-nil the return value is non-zero.
+//
+//
+// 	==/!\[ WARNING! ][ Bug Known In Reflect Package(go1.9.2) ]========================
+//
+// 	 FieldByName and related functions consider struct field names to be equal if
+//   the names are equal, even if they are unexported names originating in different
+//   packages. The practical effect of this is that the result of t.FieldByName("x")
+//   is not well defined if the struct type t contains multiple fields named x
+//   (embedded from different packages). FieldByName may return one of the fields
+//   named x or may report that there are none. See golang.org/issue/4876 for more
+//   details.
+//
+// 	========================/!\[ WARNING! ][ Bug Known In Reflect Package(go1.9.2) ]==
+//
+//
+//  ==/!\[ WARNING! ][ Thoughtless use of pointers is not secure! ]===================
+//  if size > 0 && lastzero == size {
+///   // TODO: THINK ABOUT THIS!
+//		// This is a non-zero sized struct that ends in a
+//		// zero-sized field. We add an extra byte of padding,
+//		// to ensure that taking the address of the final
+//		// zero-sized field can't manufacture a pointer to the
+//		// next object in the heap. See issue 9401.
+//		size++
+//	}
+//
+//	var typ *structType
+//	var ut *uncommonType
+//	switch {
+//	case len(methods) == 0:
+//		t := new(structTypeUncommon)
+//		typ = &t.structType
+//		ut = &t.u
+//	case len(methods) <= 4:
+//		t := new(structTypeFixed4)
+//		typ = &t.structType
+//		ut = &t.u
+//		copy(t.m[:], methods)
+//	case len(methods) <= 8:
+//		t := new(structTypeFixed8)
+//		typ = &t.structType
+//		ut = &t.u
+//		copy(t.m[:], methods)
+//	case len(methods) <= 16:
+//		t := new(structTypeFixed16)
+//		typ = &t.structType
+//		ut = &t.u
+//		copy(t.m[:], methods)
+//	case len(methods) <= 32:
+//		t := new(structTypeFixed32)
+//		typ = &t.structType
+//		ut = &t.u
+//		copy(t.m[:], methods)
+//	default:
+//		panic("reflect.StructOf: too many methods")
+//	}
 
-const (
-	StringType dataType = iota
-	IntType
-	UintType
-	MapType
-	BoolType
-	TimeType
-)
+//
+// Data Kind
+//////////////////////////////////////////////////////////////////////////////
+// Pkg ~@250 line on https://golang.org/src/reflect/type.go
+//
+// TODO: Don't need to initialize our own datatypes if we are already calling
+// reflect since it has the following:
+//
+// These data structures are known to the compiler
+// (../../cmd/internal/gc/reflect.go).
+//
+// A few are known to ../runtime/type.go to convey to debuggers.
+// They are also known to ../runtime/type.go.
+//
+// A Kind represents the specific kind of type that a Type represents.
+// The zero Kind is not a valid kind.
+//
+//    tflag is used by an rtype to signal what extra type information
+//    type tflag uint8
+// 		type Kind uint
+// 		const (
+// 			Invalid Kind = iota
+// 			Bool
+// 			Int
+// 			Int8
+// 			Int16
+// 			Int32
+// 			Int64
+// 			Uint
+// 			Uint8
+// 			Uint16
+// 			Uint32
+// 			Uint64
+// 			Uintptr
+// 			Float32
+// 			Float64
+// 			Complex64
+// 			Complex128
+// 			Array
+// 			Chan
+// 			Func
+// 			Interface
+// 			Map
+// 			Ptr
+// 			Slice
+// 			String
+// 			Struct
+// 			UnsafePointer
+// 		)
+//
+
+// TODO: I don't to count over compared value
+//
+// Possible ways to not count more than
+// needed when checking.
+//
+// Size() uintptr, Bite() int
+
+// May just be useful reference
+var kindNames = []string{
+	Invalid: "invalid",
+	Bool:    "bool",
+	Int:     "int",
+	//Int8:       "int8",
+	//Int16:      "int16",
+	//Int32:      "int32",
+	//Int64:      "int64",
+	Uint: "uint",
+	//Uint8:      "uint8",
+	//Uint16:     "uint16",
+	//Uint32:     "uint32",
+	//Uint64:     "uint64",
+	//Uintptr:    "uintptr",
+	//Float32:    "float32",
+	//Float64:    "float64",
+	//Complex64:  "complex64",
+	//Complex128: "complex128",
+	//Array:      "array",
+	//Chan:       "chan",
+	//Func:       "func",
+	//Interface:  "interface",
+	//Map:        "map",
+	//Ptr:        "ptr",
+	//Slice:      "slice",
+	String: "string",
+	//Struct:        "struct",
+	//UnsafePointer: "unsafe.Pointer",
+}
 
 // InputData.InputDataFunc(): Validation Functions
 //type InputDataFunc func() InputData
@@ -122,7 +283,11 @@ func IfMap(input map[interface{}]interface{}) InputData {
 	// If Map Length 0 (IsEmpty)
 	if len(input) > 0 {
 		// In A Map Each Key/Value Set Is An Entry
-		firstKey := (reflect.ValueOf(input).MapKeys())[0]
+		value := reflect.ValueOf(input)
+		fmt.Println("Input type using basic type check: %T", input.(type))
+		fmt.Println("Reflected.ValueOf() type using basic type check: %T", value.(type))
+		fmt.Println("Reflected.ValueOf().Kind() type using basic type check: %s", value.Kind())
+		firstKey := (value.MapKeys())[0]
 		// Prepare InputData Based On Key Type/Kind
 		switch firstKey.Kind() {
 		case reflect.Array, reflect.String:
@@ -142,6 +307,10 @@ func IfMap(input map[interface{}]interface{}) InputData {
 		MapData:  input,
 	}
 }
+
+// TODO: Should consider using reflect.Value().MustBe()
+// or at least look at the strategy used:
+// https://golang.org/src/reflect/value.go
 
 // Generic/Dynamic Input Function
 func If(input interface{}) InputData {
@@ -173,6 +342,38 @@ func If(input interface{}) InputData {
 // Type switch without reflect library
 ///////////////////////////////////////
 // Pkg https://golang.org/pkg/reflect
+//
+// The most common way to handle type differentiation and type checking is using
+// the *reflect* package. This package is so ubiquitiuos that it is found throughout
+// the Go source, for example, it is in the commonly used json package.
+//
+// An Example of using it can also be found:
+// https://golang.org/src/reflect/value.go @ 320
+//
+// Additionally @ line 1021 Len() function shows how Len is fo-und
+// for Array, Chan, Map, Slice, or String
+// func (v Value) Len() int {
+// 	k := v.kind()
+// 	switch k {
+//		return (*sliceHeader)(v.ptr).Len
+//	case String:
+//		// String is bigger than a word; assume flagIndir.
+//		return (*stringHeader)(v.ptr).Len
+//	}
+//
+// MapIndex returns the value associated with key in the map v.
+// It panics if v's Kind is not Map.
+// It returns the zero Value if key is not found in the map or if v represents a nil map.
+// As in Go, the key's value must be assignable to the map's key type.
+// func (v Value) MapIndex(key Value) Value
+// v.mustBe(Map)
+// 	tt := (*mapType)(unsafe.Pointer(v.typ))
+//
+//
+//
+// Despite this, people will warn against using it, and it is worth understanding
+// their point of view before making your decision on weather it does properly
+// fit your use case.
 //
 // It appears most people only know how to do data type comparision using the
 // reflect library. Somet validation libraries boast how they avoid this, and
