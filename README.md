@@ -144,6 +144,8 @@ schema as tags during struct definition.
 The best way to handle single variable validation is by having a
 recursively returned validation function that allows chaining.
 
+**Chainable Inline Definition**
+
     // API is not solidified, and subject to change
     isValid, userInput, errs := valid.IfString("test string").IsContaining("cool").IsLessThan(5).IsIn([]string{"test", "best", "mega"}).NoNumeric().IsEmpty().IsValid()
     if isValid {
