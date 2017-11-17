@@ -136,6 +136,61 @@ import (
 //
 // 		val := arrayAt(s.Data, i, typ.size)
 //
+//  If CanAddr returns false, calling Addr will panic.
+// 		func (v Value) CanAddr() bool {
+// 			return v.flag&flagAddr != 0
+// 		}
+//
+// [INFO][So how do we get our own len/count/size ?]
+//
+// [ Either use recover, to prevent these panics from crashing the program,
+// or reimplement the code without the panics so we save even more time not
+// panicing and recovering.]
+//
+// var uint8Type = TypeOf(uint8(0)).(*rtype)
+// Index returns v's i'th element.
+// It panics if v's Kind is not Array, Slice, or String or i is out of range.
+// 			func (v Value) Index(i int) Value {
+// 				switch v.kind() {
+// 				case Array:
+// 					tt := (*arrayType)(unsafe.Pointer(v.typ))
+// 					if uint(i) >= uint(tt.len) {
+// 						panic("reflect: array index out of range")
+// 					}
+// 					typ := tt.elem
+// 					offset := uintptr(i) * typ.size
+// 					// Either flagIndir is set and v.ptr points at array,
+// 					// or flagIndir is not set and v.ptr is the actual array data.
+// 					// In the former case, we want v.ptr + offset.
+// 					// In the latter case, we must be doing Index(0), so offset = 0,
+// 					// so v.ptr + offset is still okay.
+// 					val := unsafe.Pointer(uintptr(v.ptr) + offset)
+// 					fl := v.flag&(flagRO|flagIndir|flagAddr) | flag(typ.Kind()) // bits same as overall array
+// 					return Value{typ, val, fl}
+// 				case Slice:
+// 					// Element flag same as Elem of Ptr.
+// 					// Addressable, indirect, possibly read-only.
+// 					s := (*sliceHeader)(v.ptr)
+// 					if uint(i) >= uint(s.Len) {
+// 						panic("reflect: slice index out of range")
+// 					}
+// 					tt := (*sliceType)(unsafe.Pointer(v.typ))
+// 					typ := tt.elem
+// 					val := arrayAt(s.Data, i, typ.size)
+// 					fl := flagAddr | flagIndir | v.flag&flagRO | flag(typ.Kind())
+// 					return Value{typ, val, fl}
+// 				case String:
+// 					s := (*stringHeader)(v.ptr)
+// 					if uint(i) >= uint(s.Len) {
+// 						panic("reflect: string index out of range")
+// 					}
+// 					p := arrayAt(s.Data, i, 1)
+// 					fl := v.flag&flagRO | flag(Uint8) | flagIndir
+// 					return Value{uint8Type, p, fl}
+// 				}
+// 				panic(&ValueError{"reflect.Value.Index", v.kind()})
+// 			}
+//
 // /!\ PAY ATTENTION WHEN [StringHeader OR SliceHeader] is used, \
 // keep in mind the above!
 ///////////////////////////////////////////////////////////////////////
