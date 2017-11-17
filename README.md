@@ -152,15 +152,17 @@ recursively returned validation function that allows chaining.
 	    fmt.Println("validated user input is:", userInput)
     }
 
-Validations for a given data type, for example, *string*:
+**Validation Functions** for a given data type, for example, *string*:
 
     [ IsEmpty(), IsBetween(4, 255), IsNumeric, NotAlphabetic, ... ]
 
-Are called in a chain between the input functions:
+Are called in a chain between the **Input Functions**:
 
     [ IfString(s string), IfInt(i int), IfUint(u uint), IfMap(m map[string]string) ]
 
-And output function:
+And finalizing with an **Output function** which returns *bool*,
+dataValue, and any and all errors so they can all be printed to clarify
+what exactly needs to be changed to acheive successful validation:
 
     [ IsValid(errorMessages map[string]string) (bool, interface{}, []error) ]
 
