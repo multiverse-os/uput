@@ -150,13 +150,13 @@ recursively returned validation function that allows chaining.
     isValid, userInput, errs := valid.IfString("test string").IsContaining("cool").IsLessThan(5).IsIn([]string{"test", "best", "mega"}).NoNumeric().IsEmpty().IsValid()
     if isValid {
 	    valid.PrintErrors(errs)
-		} else {
+    } else {
 	    fmt.Println("validated user input is:", userInput)
     }
 
 **Validation Functions** for a given data type, for example, *string*:
 
-    [ IsEmpty(), IsBetween(4, 255), IsNumeric, NotAlphabetic, ... ]
+    [ IsEmpty(), IsBetween(4, 255), IsNumeric(), NotAlphabetic(), ... ]
 
 Are called in a chain between the **Input Functions**:
 

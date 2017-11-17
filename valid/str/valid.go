@@ -46,6 +46,7 @@ func NotInSlice(s string, lo []string) bool {
 }
 
 // String Length
+func Required(s string) bool              { return (len(s) > 0) }
 func IsEmpty(s string) bool               { return (s == "") }
 func IsNotEmpty(s string) bool            { return (s != "") }
 func IsBetween(s string, gt, lt int) bool { return (len(s) > gt || len(s) < lt) }

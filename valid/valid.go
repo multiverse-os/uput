@@ -18,6 +18,7 @@ const (
 //type ValidateStringFunction func(input string) (output string, errors []error)
 type InputData struct {
 	dataType
+	fieldName     string
 	stringData    string
 	intData       int
 	uintData      uint
@@ -27,8 +28,13 @@ type InputData struct {
 	//validations   map[string]ValidateStringFunction
 }
 
+//
+// Errors
+
+// Development Printing (remove later, don't assume logging style)
 func PrintErrors(errors []error) {
 	// TODO: Obviously should just be marshalling to JSON and printing
+	// but this is temporary anyways
 	if len(errors) > 0 {
 		fmt.Println("{")
 		fmt.Println("  \"error_count\": \"" + strconv.Itoa(len(errors)) + ",")
@@ -41,6 +47,12 @@ func PrintErrors(errors []error) {
 	}
 }
 
+func (input InputData) ErrorMessages(errorMessages map[string]string) InputData {
+	for key, value := range errorMessages {
+	}
+}
+
+//
 // Output function - maybe a function with the ability specify messages
 func (input InputData) IsValid() (bool, interface{}, []error) {
 	if input.dataType == stringType {
@@ -51,10 +63,30 @@ func (input InputData) IsValid() (bool, interface{}, []error) {
 	}
 }
 
+//
 // Input functions
-func IfString(input string) InputData { return InputData{dataType: stringType, stringData: input} }
-func IfInt(input int) InputData       { return InputData{dataType: intType, intData: input} }
-func IfUInt(input uint) InputData     { return InputData{dataType: uintType, uintData: input} }
+func IfString(input string) InputData {
+	return InputData{
+		dataType:      stringType,
+		stringData:    input,
+		errorMessages: stringErrorMessages,
+	}
+}
+func IfInt(input int) InputData {
+	return InputData{
+		dataType: intType,
+		intData:  input,
+	}
+}
+func IfUInt(input uint) InputData {
+	return InputData{
+		dataType: uintType,
+		uintData: input,
+	}
+}
 func IfMap(input map[interface{}]interface{}) InputData {
-	return InputData{dataType: mapType, mapData: input}
+	return InputData{
+		dataType: mapType,
+		mapData:  input,
+	}
 }

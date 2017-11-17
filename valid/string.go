@@ -8,7 +8,7 @@ import (
 	"lib/uput/valid/str"
 )
 
-var stringErrorMessages = map[string]string{
+var stringErrrMessages = map[string]string{
 	// String In Slice
 	"isin":  "not included in",
 	"notin": "included in",
@@ -59,7 +59,6 @@ func (input InputData) IsIn(listOptions []string) InputData {
 	}
 	return input
 }
-
 func (input InputData) NotIn(listOptions []string) InputData {
 	if !validstr.NotInSlice(input.stringData, listOptions) {
 		input.errors = append(input.errors, errors.New(stringErrorMessages["notin"]+": ["+strings.Join(listOptions, ", ")+"]"))
@@ -69,34 +68,36 @@ func (input InputData) NotIn(listOptions []string) InputData {
 
 //
 // String Length Validations
+func (input InputData) Required() InputData {
+	if !validstr.Required(input.stringData) {
+		input.errors = append(input.errors, errors.New(stringErrorMessages["empty"]))
+	}
+	return input
+}
 func (input InputData) IsEmpty() InputData {
 	if !validstr.IsEmpty(input.stringData) {
 		input.errors = append(input.errors, errors.New(stringErrorMessages["empty"]))
 	}
 	return input
 }
-
 func (input InputData) IsNotEmpty() InputData {
 	if !validstr.IsNotEmpty(input.stringData) {
 		input.errors = append(input.errors, errors.New(stringErrorMessages["notempty"]))
 	}
 	return input
 }
-
 func (input InputData) IsBetween(start, end int) InputData {
 	if !validstr.IsBetween(input.stringData, start, end) {
 		input.errors = append(input.errors, errors.New(stringErrorMessages["between"]+": "+strconv.Itoa(start)+"-"+strconv.Itoa(end)))
 	}
 	return input
 }
-
 func (input InputData) IsLessThan(lt int) InputData {
 	if !validstr.IsLessThan(input.stringData, lt) {
 		input.errors = append(input.errors, errors.New(stringErrorMessages["lessthan"]+": "+strconv.Itoa(lt)))
 	}
 	return input
 }
-
 func (input InputData) IsGreaterThan(gt int) InputData {
 	if !validstr.IsGreaterThan(input.stringData, gt) {
 		input.errors = append(input.errors, errors.New(stringErrorMessages["greaterthan"]+": "+strconv.Itoa(gt)))
