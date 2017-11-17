@@ -7,10 +7,21 @@ import (
 	"unicode/utf8"
 )
 
+// Catching look-alikes
+// string Normalization and UTF8 comparisons
+//
+// Can you tell the difference between 'K' ("\u004B") and 'K' (Kelvin sign "\u212A")?
+// It is easy to overlook the sometimes minute differences between variants of the same
+// underlying character. It is generally a good idea to disallow such variants in
+// *identifiers* (Usernames, Roles, etc) or anything where deceiving users with such
+// look-alikes can pose a security hazard.
+// TODO: Add this to the _test.go file to ensure this is always being checked for
+
 type characterType int
 
 // TODO: To use rangeMaps that exist within unicode, this needs to be mapped to
-// rangeMap values
+// rangeMap values. Can this exist within InputData or initialize in this within
+// IfString to avoid memory usage when not being used?
 const (
 	Alphabetic characterType = iota
 	Numeric

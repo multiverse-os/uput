@@ -20,6 +20,9 @@ security.
 * Support for *single variables* and *structs* using supporting two different methods, built from researching existing popular implementations.
 * Variety of specific type validation within the builtin data types; ranging from common to niche, impelemented as sub-packages to be imported as needed.
 * Relying on stdlibs like unicode over heavy reliance on regex.
+* Focus on security, translating to validation of all printed variables
+  within the library (for example Error messages). Great care has been
+taken to research for best ways to validate types of data (for example, to avoid look-a-likes when comparing UTF8 strings).
 
 All functionality will be implemented as sub-packages, with only a minimal
 set of functionality required to use any specific sub-package. For
@@ -103,48 +106,60 @@ impelementations is if validation is aimed at structs or individual variables.
 **uput** aims to provide both, in a way that they can be included
 separately, to fit the needs of the developer and avoid codebase bloat.
 
-**Common issues**
+**Input, Validation, Transform Issues And Security**
+Below are a few common issues met by developers of similar libraries or common security concerns within the topics of user input, validation, and transforms. Thoughtful research in the subject can avoid libraries re-implementing mistakes already experienced by previous related projects:
 
 [Validation functions return type error, to avoid err is always != nil.](https://stackoverflow.com/questions/29138591/hiding-nil-values-understanding-why-golang-fails-here/29138676#29138676)
 
+[Transforms/Normalization as part of the validation pipeline to prevent
+security issues associated with look-a-likes. Example: The character K,
+and the character K for Kelvin
+Temperature](https://blog.golang.org/normalization)
 
-Each is a sub-package, allowing it to be used exclusively, requiring a
-minimum amount of additional code.
-
-
-### Common Implementations
-After reviewing existing code there are a few different strategies to impelement validation functionality. 
-
-**Schema**
-The first method I will call schema or rule based validation. This method is implemented so a developer using it creates a "validation"-er object, then uses this set or rules or schema against individual values or objects (structs). 
-
-The two main strategies for defining a schema is by:
-
-1. Tags defined inside a struct declaration
-2. "validation"-er object declaration inline
-
-Each of these methods of defining have their own positives and negatives.
-
-In general, methodology can be very clean, human readable and is the most popular. It allows one to save a definition with the object and repeatedly use the same schema over and over. Ideally these type of impelemtnations would allow for schemas to be exported generating a specification for the developed software's API (I have not seen this actually impelmented yet). 
-
-I believe there are benefits to this strategy when working on objects, but for individual variables, it feels clunky.
-
-**Chaining**
-Chaining feels like the best method for one-off validation of a variable inline in a simple script. It can keep a minimal footprint by only importing necessary validations being used and it keeps the logic being added very simple and human readable. 
-
-There are limitations but one could fallback to schema based validation if the software is complex enough to warrant it.
+Each is a sub-package (user input, validation, and transformation), allowing it to be used exclusively, or together.
 
 
-Both methods are defining a schema, the primary difference is that
-*chaining method* is defining the schema inline, whereas the *schema
-method* is defining a set of rules as a "validate"-er or defining the
-schema as tags during struct definition.
+### Reviewing Existing Implementations
+After reviewing existing validation libraries available for Go, a few common strategies emerge as the most popular methodologies for validating data in Go.
+
+In general, struct based validation is the most popular method of
+validation. Within that category, there are two major strategies for
+defining validation schemas for struct based validation.
+
+### Struct Validation
+**Struct: Struct Tag Based Schema Declaration**
+These methods use a **Tag or Separate Object (or Rules) Based Schema Validation** to define an entire object (struct) to be validated. The primary difference between the two is the way the validation schema is being declared.
+
+The most popular method to declare a validation schema for a struct is
+using *existing struct tag system* to declare validations inline with
+the Field declaration when defining a struct. One may be familiar with
+tags, they are most often used when working with marshalling "json", "yaml" or "toml" tags when loading or saving configuration files. An Example of both "json" tag and our custom "validate":
+
+      type User struct {
+        Id       int     `json:id,validate:length:10`
+        Username string
+`json:username,validate:between:2-24;alphanumeric`
+      }
+
+However, there are legitimate criticisms of this strategy, and while it
+may be perfect for some projects, it is not ideal for all.
+
+**Struct: Object (or Rules Object) Based Schema Declaration**
+Alternatively, the next most popular method to define a validation schema is using *a "validation"-er object* to define a set of rules. Passing a struct to a "validate"-er will typically return a slice of all validation errors.
+
+Ideally these type of impelemtnations would allow for schemas to be exported generating a specification for the developed software's API. Yet, no library seems to actually implement an ability to export a complete JSON or YAML document that includes all declared object schema to automate documentation generation for APIs.
+
+Each methodology has benefits and because of this, to avoid being too
+opinionated, each methodology is implemented as sub-packages, allowing the developer to choose one or both methods.
+
 
 ### Single Variable Validation
-The best way to handle single variable validation is by having a
-recursively returned validation function that allows chaining.
+And while these methods work well for objects, for single variables, they feel too heavy and clunky. So an additional method has been implemented to cater to developers who need validation for individual variables and not just validation for objects.
 
-**Chainable Inline Definition**
+Inline declaration of validation schemas that support inline passing of single variables of any type to be validated, empowers developers to validate any variable, even in tiny scritps, utilizing a minimal one line validation.
+
+**Chainable Inline Schema Definition**
+By providing validation with only a single human readable line of code that immediately returns a validated/transformed(if transformed) input string and slice of validation errors (if any). Enabling the developer to do a quick:
 
     // API is not solidified, and subject to change
     isValid, userInput, errs := valid.IfString("test string").IsContaining("cool").IsLessThan(5).IsIn([]string{"test", "best", "mega"}).NoNumeric().IsEmpty().IsValid()
@@ -153,6 +168,12 @@ recursively returned validation function that allows chaining.
     } else {
 	    fmt.Println("validated user input is:", userInput)
     }
+
+Intentionally unopiniated, utilizes no special library defined data types, only normal builtin Go datatypes are returned, and this is acheived without feature loss: it still supports localization (i18n) of error messages.
+
+This method works well for one-off validation of a variable inline in a simple script for example.
+
+This method enables developers to easily define their own custom validations or even custom input, output and transform functions.
 
 **Validation Functions** for a given data type, for example, *string*:
 
@@ -168,7 +189,7 @@ what exactly needs to be changed to acheive successful validation:
 
     [ IsValid(errorMessages map[string]string) (bool, interface{}, []error) ]
 
-After the input function and before validation, *transformation functions*
+After the input function and before validation, **transformation functions**
 can be called to normalize data, preparing it for validation, or after
 validation to prepare data for use, like saving into a DB.
 
@@ -179,25 +200,11 @@ rules and any number of validations and transformations can be called.
 development, and is subject to change. If you have suggestions, please
 create an issue to initiate a discussion on relevant topics.*
 
-
-### Struct Validation
-There are two common methods to initializing and specifying struct based
-validations, the most common method is **Tag based**, relying on the
-existing tag system within the struct, which is nice because it is
-consistent with other functionality.
-
-A few other libraries like ozzo prefers a **Schema based** *(sometimes
-called rules)* which is implemented by defining a schema "validate"-er
-type separate from any one specific struct.
-
-Each methodology has benefits and because of this, to avoid being too
-opinionated, each methodology is implemented as sub-packages, allowing the developer to choose one or both methods.
-
-
 ## Transformations
 Transformations are necessarily to prepare data for validation or
 prepare data for use after validation.
 
+For example, [secure username implementation in a UTF8 environment requires normalization of characters to pretent look-a-likes](https://blog.golang.org/normalization).
 
 ## Under Development
 Not all features are implemented yet, as of writing only the string
