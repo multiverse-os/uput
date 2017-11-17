@@ -90,6 +90,55 @@ import (
 //	default:
 //		panic("reflect.StructOf: too many methods")
 //	}
+//
+// ---or---
+//
+// Header reflect data used is not stable!
+//
+// [StringHeader] is the runtime representation of a string.
+// It cannot be used safely or portably and its representation may
+// change in a later release.
+//
+// Moreover, the Data field is not sufficient to guarantee the data
+// it references will not be garbage collected, so programs must keep
+// a separate, correctly typed pointer to the underlying data.
+//
+// 			type StringHeader struct {
+// 				Data uintptr
+// 				Len  int
+// 			}
+//
+// [SliceHeader] is the runtime representation of a slice.
+// It cannot be used safely or portably and its representation may
+// change in a later release.
+//
+// Moreover, the Data field is not sufficient to guarantee the data
+// it references will not be garbage collected, so programs must keep
+// a separate, correctly typed pointer to the underlying data.
+//
+// 		type SliceHeader struct {
+// 			Data uintptr
+//			Len  int
+//			Cap  int
+// 		}
+//
+// So people relying on Cap() for their size?
+// [!][Slice is always bigger than a word; assume flagIndir.]
+//
+// 		return (*sliceHeader)(v.ptr).Cap
+//
+//  Element flag same as Elem of Ptr.
+// 	Addressable, indirect, possibly read-only.
+//		s := (*sliceHeader)(v.ptr)
+//		if uint(i) >= uint(s.Len) {
+//			panic("reflect: slice index out of range")
+//		}
+//
+// 		val := arrayAt(s.Data, i, typ.size)
+//
+// /!\ PAY ATTENTION WHEN [StringHeader OR SliceHeader] is used, \
+// keep in mind the above!
+///////////////////////////////////////////////////////////////////////
 
 //
 // Data Kind
