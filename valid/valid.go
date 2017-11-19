@@ -15,7 +15,6 @@ import (
 func If(input interface{}) {
 	switch inputValue := reflect.ValueOf(input); inputValue.Kind() {
 	case reflect.String:
-
 		validstr.If(inputValue.String())
 	}
 }

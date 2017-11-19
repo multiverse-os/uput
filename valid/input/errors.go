@@ -136,7 +136,7 @@ func (input InputData) PrintErrors() {
 		fmt.Println("  \"error_count\": " + strconv.Itoa(len(input.Errors)) + ",")
 		fmt.Println("  \"errors\": {")
 		for _, err := range input.Errors {
-			fmt.Println("    \"invalid_" + input.DataTypeName + "\": \"" + err.Error() + "\",")
+			fmt.Println("    \"" + err.Error() + "\",")
 		}
 		fmt.Println("  }")
 		fmt.Println("}")

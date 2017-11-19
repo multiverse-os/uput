@@ -13,6 +13,7 @@ type InputData struct {
 	ErrorMessages          map[string]string
 	ValidationDescriptions map[string]string
 	CustomValidations      map[string]interface{}
+	Field                  bool
 	Valid                  bool
 	// Struct Validation
 	//fieldName string

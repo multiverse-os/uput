@@ -23,6 +23,8 @@ func If(s string) StringInput {
 		input: validinput.InputData{
 			DataType:               reflect.String,
 			DataTypeName:           "string",
+			Field:                  false,
+			Valid:                  false,
 			ErrorMessages:          (DefaultErrorMessages()),
 			ValidationDescriptions: (DefaultValidationDescriptions()),
 		},
@@ -45,6 +47,10 @@ func (s StringInput) IsValid() (bool, string, []error) {
 //
 // Custom Validations
 // ==========================================================================
+
+func (s StringInput) isValid() bool {
+	return (len(s.input.Errors) == 0)
+}
 
 func (s StringInput) AddCustomValidation(key, description, errorMessage string, function, values interface{}) {
 	s.input.ValidationDescriptions[key] = description

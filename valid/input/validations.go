@@ -112,7 +112,7 @@ func (input InputData) PrintValidations() {
 		fmt.Println("  \"validation_count\": " + strconv.Itoa(len(input.Validations)) + ",")
 		fmt.Println("  \"validations\": {")
 		for _, v := range input.Validations {
-			fmt.Println("    \"" + input.DataTypeName + "\": \"" + v + "\",")
+			fmt.Println("    \"" + v + "\",")
 		}
 		fmt.Println("  }")
 		fmt.Println("}")
