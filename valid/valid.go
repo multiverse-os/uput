@@ -3,18 +3,8 @@ package valid
 import (
 	"reflect"
 
-	validinput "lib/uput/valid/input"
 	validstr "lib/uput/valid/str"
 )
-
-//
-// DEV
-func PrintErrors(errors []error) {
-	validinput.PrintErrors(errors)
-}
-func PrintValidations(validations []string) {
-	validinput.PrintValidations(validations)
-}
 
 //
 // Generic/Dynamic Output Function

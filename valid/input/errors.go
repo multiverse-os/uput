@@ -2,8 +2,9 @@ package validinput
 
 import (
 	"errors"
-	"fmt"
+	"fmt"     // DEV
 	"strconv" // development package
+	"strings"
 	"unicode"
 )
 
@@ -98,15 +99,15 @@ func (input InputData) ValidateErrorMessages() InputData {
 }
 
 // Development Printing (remove later, don't assume logging style)
-func PrintErrors(errors []error) {
+func (input InputData) PrintErrors() {
 	// TODO: Obviously should just be marshalling to JSON and printing
 	// but this is temporary anyways
-	if len(errors) > 0 {
+	if len(input.Errors) > 0 {
 		fmt.Println("{")
-		fmt.Println("  \"error_count\": \"" + strconv.Itoa(len(errors)) + ",")
+		fmt.Println("  \"error_count\": " + strconv.Itoa(len(input.Errors)) + ",")
 		fmt.Println("  \"errors\": {")
-		for _, err := range errors {
-			fmt.Println("    \"string\": \"" + err.Error() + "\",")
+		for _, err := range input.Errors {
+			fmt.Println("    \"invalid_" + input.DataTypeName + "\": \"" + err.Error() + "\",")
 		}
 		fmt.Println("  }")
 		fmt.Println("}")
@@ -115,12 +116,14 @@ func PrintErrors(errors []error) {
 
 func (input InputData) AppendError(key string, values []string) InputData {
 	switch lenValues := len(values); lenValues {
+	case 0:
+		input.Errors = append(input.Errors, errors.New(input.ErrorMessages[key]))
 	case 1:
 		input.Errors = append(input.Errors, errors.New(input.ErrorMessages[key]+": "+values[0]))
 	case 2:
 		input.Errors = append(input.Errors, errors.New(input.ErrorMessages[key]+": "+values[0]+" - "+values[1]))
 	default:
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages[key]))
+		input.Errors = append(input.Errors, errors.New(input.ErrorMessages[key]+": [ "+strings.Join(values, ", ")+" ]"))
 	}
 	return input
 }
