@@ -1,333 +1,295 @@
 package validstr
 
 import (
-	"errors"
+	"reflect"
 	"strconv"
+	"strings"
 
-	valid "lib/uput/valid"
+	// TODO: Should avoid this and move any thing used into a core/common valid package
+	// so that valid could be used for including all validation and this for a single 1
+	//valid "lib/uput/valid"
+	input "lib/uput/valid/input"
 )
 
-var stringErrorMessages = map[string]string{
-	// String In Slice
-	"isin":  "not included in",
-	"notin": "included in",
-	// Size/Memory Space Validations
-	"oversized":    "is too large",
-	"notoversized": "data not oversized",
-	// Length Validaitons
-	"empty":       "is not empty",
-	"notempty":    "is empty",
-	"between":     "length not between",
-	"lessthan":    "length not less than",
-	"greaterthan": "length not greater than",
-	// Substring Validations
-	"containing":    "not containing substring",
-	"notcontaining": "ccontaining substring",
-	// Regex Validations
-	"regexmatch":   "no regex matches",
-	"noregexmatch": "has regex matches",
-	// UTF Rune Validations
-	"utf8":           "no utf8 characters",
-	"noutf8":         "contains utf8 characters",
-	"uppercase":      "contains lowercase characters",
-	"nouppercase":    "non-uppercase characters",
-	"lowercase":      "contains uppercase characters",
-	"nolowercase":    "non-lowercase characters",
-	"printable":      "non-printable characters",
-	"noprintable":    "contains printable characters",
-	"alphabetic":     "non-alphabetic characters",
-	"noalphabetic":   "contains alphabetic characters",
-	"alphanumeric":   "non-alphanumeric characters",
-	"noalphanumeric": "contains alphanumeric characters",
-	"numeric":        "non-numeric characters",
-	"nonumeric":      "is numeric characters",
-	"digits":         "non-digits",
-	"nodigits":       "contains digits",
-	"marks":          "non-mark characters",
-	"nomarks":        "contains mark characters",
-	"graphics":       "non-graphic characters",
-	"nographics":     "contains graphic characters",
-	"symbols":        "non-symbol characters",
-	"nosymbols":      "contains symbols characters",
-	"spaces":         "non-whitespace characters",
-	"nospaces":       "contains whitespace characters",
+// Nesting the common inputData type
+type StringInput struct {
+	inputData input.InputData
 }
-
-//type StringInput valid.InputData
-type StringInput valid.InputData
 
 //
-// Output Function
-func (input StringInput) IsValid() (bool, interface{}, []error) {
-	return (len(input.Errors) == 0), input.StringData, input.Errors
+// Validation Input Function
+func If(si string) StringInput {
+	// TODO: Right now we are using the entire reflect package jsut for
+	// a const Int value, either manually enter the value or delegate this to valid
+	return StringInput{
+		inputData: input.InputData{
+			DataType:      reflect.String,
+			Data:          si,
+			StringData:    si,
+			ErrorMessages: (DefaultErrorMessages()),
+		},
+	}
 }
 
-//type StringInput struct {
-//	inputData valid.InputData
-//}
-
-func If(input string) StringInput {
-	return StringInput{
-		DataType:      valid.StringType,
-		StringData:    input,
-		ErrorMessages: stringErrorMessages,
-	}
+//
+// Validation Output Function
+func (si StringInput) IsValid() (bool, interface{}, []error) {
+	return (len(si.inputData.Errors) == 0), si.inputData.StringData, si.inputData.Errors
 }
 
 //
 // Option in slice of strings
-func (input StringInput) IsIn(listOptions []string) StringInput {
-	if !IsInSlice(input.StringData, listOptions) {
-		//return input.AppendError("isin", strings.Join(listOptions, ", "))
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["isin"]))
+func (si StringInput) IsIn(listOptions []string) StringInput {
+	if !IsInSlice(si.inputData.StringData, listOptions) {
+		si.inputData = si.inputData.AppendError("isin", []string{strings.Join(listOptions, ", ")})
 	}
-	return input
+	return si
 }
-func (input StringInput) NotIn(listOptions []string) StringInput {
-	if NotInSlice(input.StringData, listOptions) {
-		//return input.AppendError("notin", strings.Join(listOptions, ", "))
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["isin"]))
+func (si StringInput) NotIn(listOptions []string) StringInput {
+	if NotInSlice(si.inputData.StringData, listOptions) {
+		si.inputData = si.inputData.AppendError("isin", []string{strings.Join(listOptions, ", ")})
 	}
-	return input
+	return si
 }
 
 //
 // String Length Validations
-func (input StringInput) Required() StringInput {
-	if !Required(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["empty"]))
+func (si StringInput) Required() StringInput {
+	if !Required(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("required", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsEmpty() StringInput {
-	if !IsEmpty(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["empty"]))
+func (si StringInput) IsEmpty() StringInput {
+	if !IsEmpty(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("empty", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsNotEmpty() StringInput {
-	if !IsNotEmpty(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["notempty"]))
+func (si StringInput) IsNotEmpty() StringInput {
+	if !NotEmpty(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("notempty", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsBetween(start, end int) StringInput {
-	if !IsBetween(input.StringData, start, end) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["between"]+": "+strconv.Itoa(start)+"-"+strconv.Itoa(end)))
+func (si StringInput) IsBetween(start, end int) StringInput {
+	if !IsBetween(si.inputData.StringData, start, end) {
+		si.inputData = si.inputData.AppendError("between", []string{strconv.Itoa(start), strconv.Itoa(end)})
 	}
-	return input
+	return si
 }
-func (input StringInput) IsLessThan(lt int) StringInput {
-	if !IsLessThan(input.StringData, lt) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["lessthan"]+": "+strconv.Itoa(lt)))
+func (si StringInput) IsLessThan(lt int) StringInput {
+	if !IsLessThan(si.inputData.StringData, lt) {
+		si.inputData = si.inputData.AppendError("lessthan", []string{strconv.Itoa(lt)})
 	}
-	return input
+	return si
 }
-func (input StringInput) IsGreaterThan(gt int) StringInput {
-	if !IsGreaterThan(input.StringData, gt) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["greaterthan"]+": "+strconv.Itoa(gt)))
+func (si StringInput) IsGreaterThan(gt int) StringInput {
+	if !IsGreaterThan(si.inputData.StringData, gt) {
+		si.inputData = si.inputData.AppendError("greaterthan", []string{strconv.Itoa(gt)})
 	}
-	return input
+	return si
 }
 
 //
 // Substring Validation
 // WARNING: DOES NOT WORK FOR UTF8 MATCHING
-func (input StringInput) Contains(ss string) StringInput {
-	if !IsContaining(input.StringData, ss) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["containing"]+": '"+ss+"'"))
+// This will let through look-alikes
+func (si StringInput) IsContaining(ss string) StringInput {
+	if !IsContaining(si.inputData.StringData, ss) {
+		si.inputData = si.inputData.AppendError("containing", []string{ss})
 	}
-	return input
+	return si
 }
-func (input StringInput) NotContaining(ss string) StringInput {
-	if !NotContaining(input.StringData, ss) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["notcontaining"]+": '"+ss+"'"))
+func (si StringInput) NotContaining(ss string) StringInput {
+	if !NotContaining(si.inputData.StringData, ss) {
+		si.inputData = si.inputData.AppendError("notcontaining", []string{ss})
 	}
-	return input
+	return si
 }
 
 //
 // Regex Validation
-func (input StringInput) IsRegexMatch(pattern string) StringInput {
-	if !IsRegexMatch(input.StringData, pattern) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["regexmatch"]))
+func (si StringInput) IsRegexMatch(pattern string) StringInput {
+	if !IsRegexMatch(si.inputData.StringData, pattern) {
+		si.inputData = si.inputData.AppendError("regexmatch", []string{pattern})
 	}
-	return input
+	return si
 }
-func (input StringInput) NoRegexMatch(pattern string) StringInput {
-	if !NoRegexMatch(input.StringData, pattern) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["noregexmatch"]))
+func (si StringInput) NoRegexMatch(pattern string) StringInput {
+	if !NoRegexMatch(si.inputData.StringData, pattern) {
+		si.inputData = si.inputData.AppendError("noregexmatch", []string{pattern})
 	}
-	return input
+	return si
 }
 
 //
 // UTF8 Rune Validation
-func (input StringInput) IsUTF8() StringInput {
-	if !IsUTF8(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["utf8"]))
+func (si StringInput) IsUTF8() StringInput {
+	if !IsUTF8(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("utf8", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) NoUTF8() StringInput {
-	if !NoUTF8(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["noutf8"]))
+func (si StringInput) NoUTF8() StringInput {
+	if !NoUTF8(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("noutf8", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsUppercase() StringInput {
-	if !IsUppercase(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["uppercase"]))
+func (si StringInput) IsUppercase() StringInput {
+	if !IsUppercase(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("uppercase", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) NoUppercase() StringInput {
-	if !NoUppercase(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["nouppercase"]))
+func (si StringInput) NoUppercase() StringInput {
+	if !NoUppercase(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("nouppercase", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsLowercase() StringInput {
-	if !IsLowercase(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["lowercase"]))
+func (si StringInput) IsLowercase() StringInput {
+	if !IsLowercase(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("lowercase", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) NoLowercase() StringInput {
-	if !NoLowercase(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["nolowercase"]))
+func (si StringInput) NoLowercase() StringInput {
+	if !NoLowercase(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("nolowercase", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsPrintable() StringInput {
-	if !IsPrintable(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["printable"]))
+func (si StringInput) IsPrintable() StringInput {
+	if !IsPrintable(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("printable", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) NoPrintable() StringInput {
-	if !NoPrintable(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["noprintable"]))
+func (si StringInput) NoPrintable() StringInput {
+	if !NoPrintable(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("noprintable", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsAlphabetic() StringInput {
-	if !IsAlphabetic(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["alphabetic"]))
+func (si StringInput) IsAlphabetic() StringInput {
+	if !IsAlphabetic(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("alphabetic", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) NoAlphabetic() StringInput {
-	if !NoAlphabetic(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["noalphabetic"]))
+func (si StringInput) NoAlphabetic() StringInput {
+	if !NoAlphabetic(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("noalphabetic", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsAlphaNumeric() StringInput {
-	if !IsAlphaNumeric(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["alphanumeric"]))
+func (si StringInput) IsAlphanumeric() StringInput {
+	if !IsAlphanumeric(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("alphanumeric", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) NoAlphaNumeric() StringInput {
-	if !NoAlphaNumeric(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["noalphanumeric"]))
+func (si StringInput) NoAlphanumeric() StringInput {
+	if !NoAlphanumeric(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("noalphanumeric", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsNumeric() StringInput {
-	if !IsNumeric(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["numeric"]))
+func (si StringInput) IsNumeric() StringInput {
+	if !IsNumeric(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("numeric", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) NoNumeric() StringInput {
-	if !NoNumeric(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["nonumeric"]))
+func (si StringInput) NoNumeric() StringInput {
+	if !NoNumeric(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("nonumeric", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsDigits() StringInput {
-	if !IsDigits(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["digits"]))
+func (si StringInput) IsDigits() StringInput {
+	if !IsDigits(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("digits", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) NoDigits() StringInput {
-	if !NoDigits(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["nodigits"]))
+func (si StringInput) NoDigits() StringInput {
+	if !NoDigits(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("nodigits", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsPunctuation() StringInput {
-	if !IsPunctuation(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["punctuation"]))
+func (si StringInput) IsPunctuation() StringInput {
+	if !IsPunctuation(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("punctuation", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) NoPunctuation() StringInput {
-	if !NoPunctuation(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["nopunctuation"]))
+func (si StringInput) NoPunctuation() StringInput {
+	if !NoPunctuation(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("nopunctuation", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsSymbols() StringInput {
-	if !IsSymbols(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["symbols"]))
+func (si StringInput) IsSymbols() StringInput {
+	if !IsSymbols(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("symbols", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) NoSymbols() StringInput {
-	if !NoSymbols(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["nosymbols"]))
+func (si StringInput) NoSymbols() StringInput {
+	if !NoSymbols(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("nosymbols", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsMarkCharacters() StringInput {
-	if !IsMarkCharacters(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["markchars"]))
+func (si StringInput) IsMarkCharacters() StringInput {
+	if !IsMarkCharacters(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("markchars", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) NoMarkCharacters() StringInput {
-	if !NoMarkCharacters(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["nomarkchars"]))
+func (si StringInput) NoMarkCharacters() StringInput {
+	if !NoMarkCharacters(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("nomarkchars", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsWhitespaces() StringInput {
-	if !IsWhitespaces(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["spaces"]))
+func (si StringInput) IsWhitespaces() StringInput {
+	if !IsWhitespaces(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("spaces", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) NoWhitespaces() StringInput {
-	if !NoWhitespaces(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["nospaces"]))
+func (si StringInput) NoWhitespaces() StringInput {
+	if !NoWhitespaces(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("nospaces", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsControlCharacters() StringInput {
-	if !IsControlCharacters(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["controlchars"]))
+func (si StringInput) IsControlCharacters() StringInput {
+	if !IsControlCharacters(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("controlchars", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) NoControlCharacters() StringInput {
-	if !NoControlCharacters(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["nocontrolchars"]))
+func (si StringInput) NoControlCharacters() StringInput {
+	if !NoControlCharacters(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("nocontrolchars", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) IsGraphicCharacters() StringInput {
-	if !IsGraphicCharacters(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["graphicchars"]))
+func (si StringInput) IsGraphicCharacters() StringInput {
+	if !IsGraphicCharacters(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("graphicchars", nil)
 	}
-	return input
+	return si
 }
-func (input StringInput) NoGraphicCharacters() StringInput {
-	if !NoGraphicCharacters(input.StringData) {
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages["nographicchars"]))
+func (si StringInput) NoGraphicCharacters() StringInput {
+	if !NoGraphicCharacters(si.inputData.StringData) {
+		si.inputData = si.inputData.AppendError("nographicchars", nil)
 	}
-	return input
+	return si
 }

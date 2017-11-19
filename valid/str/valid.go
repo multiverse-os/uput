@@ -17,11 +17,11 @@ import (
 // look-alikes can pose a security hazard.
 // TODO: Add this to the _test.go file to ensure this is always being checked for
 
-type characterType int
-
 // TODO: To use rangeMaps that exist within unicode, this needs to be mapped to
 // rangeMap values. Can this exist within InputData or initialize in this within
 // IfString to avoid memory usage when not being used?
+type characterType int
+
 const (
 	Alphabetic characterType = iota
 	Numeric
@@ -37,6 +37,56 @@ const (
 	Graphic
 	Mark
 )
+
+func Validations() map[string]interface{} {
+	var inputString, inputSubstring string
+	var stringSlice []string
+	var startValue, endValue int
+	return map[string]interface{}{
+		"isin":           IsInSlice(inputString, stringSlice),
+		"notin":          NotInSlice(inputString, stringSlice),
+		"required":       Required(inputString),
+		"empty":          IsEmpty(inputString),
+		"notempty":       NotEmpty(inputString),
+		"between":        IsBetween(inputString, startValue, endValue),
+		"lessthan":       IsLessThan(inputString, endValue),
+		"greaterthan":    IsGreaterThan(inputString, startValue),
+		"containing":     IsContaining(inputString, inputSubstring),
+		"notcontaining":  NotContaining(inputString, inputSubstring),
+		"regexmatch":     IsRegexMatch(inputString, inputSubstring),
+		"noregexmatch":   NoRegexMatch(inputString, inputSubstring),
+		"utf8":           IsUTF8(inputString),
+		"noutf8":         NoUTF8(inputString),
+		"uppercase":      IsUppercase(inputString),
+		"nouppercase":    NoUppercase(inputString),
+		"lowercase":      IsLowercase(inputString),
+		"nolowercase":    NoLowercase(inputString),
+		"printable":      IsPrintable(inputString),
+		"noprintable":    NoPrintable(inputString),
+		"alphabetic":     IsAlphabetic(inputString),
+		"noalphabetic":   NoAlphabetic(inputString),
+		"alphanumeric":   IsAlphanumeric(inputString),
+		"noalphanumeric": NoAlphanumeric(inputString),
+		"numeric":        IsNumeric(inputString),
+		"nonumeric":      NoNumeric(inputString),
+		"digits":         IsDigits(inputString),
+		"nodigits":       NoDigits(inputString),
+		"punctuation":    IsPunctuation(inputString),
+		"nopunctuation":  NoPunctuation(inputString),
+		"symbols":        IsSymbols(inputString),
+		"nosymbols":      NoSymbols(inputString),
+		"marks":          IsMarkCharacters(inputString),
+		"nomarks":        NoMarkCharacters(inputString),
+		"graphics":       IsGraphicCharacters(inputString),
+		"nographics":     NoGraphicCharacters(inputString),
+		"spaces":         IsWhitespaces(inputString),
+		"nospaces":       NoWhitespaces(inputString),
+	}
+}
+
+func Validation(key string) interface{} {
+	return (Validations())[key]
+}
 
 // Slice
 func IsInSlice(s string, lo []string) bool {
@@ -59,7 +109,7 @@ func NotInSlice(s string, lo []string) bool {
 // String Length
 func Required(s string) bool              { return (len(s) > 0) }
 func IsEmpty(s string) bool               { return (s == "") }
-func IsNotEmpty(s string) bool            { return (s != "") }
+func NotEmpty(s string) bool              { return (s != "") }
 func IsBetween(s string, gt, lt int) bool { return (len(s) > gt || len(s) < lt) }
 func IsLessThan(s string, lt int) bool    { return (len(s) < lt) }
 func IsGreaterThan(s string, gt int) bool { return (len(s) > gt) }
@@ -81,34 +131,34 @@ func NoRegexMatch(s, pattern string) (match bool) {
 // UTF Rune Validations
 func IsUTF8(s string) bool              { return utf8.ValidString(s) }
 func NoUTF8(s string) bool              { return !utf8.ValidString(s) }
-func IsPrintable(s string) bool         { return IsStringType(true, s, Printable) }
-func NoPrintable(s string) bool         { return IsStringType(false, s, Printable) }
-func IsAlphabetic(s string) bool        { return IsStringType(true, s, Alphabetic) }
-func NoAlphabetic(s string) bool        { return IsStringType(false, s, Alphabetic) }
-func IsNumeric(s string) bool           { return IsStringType(true, s, Numeric) }
-func NoNumeric(s string) bool           { return IsStringType(false, s, Numeric) }
-func IsAlphaNumeric(s string) bool      { return IsStringType(true, s, Alphanumeric) }
-func NoAlphaNumeric(s string) bool      { return IsStringType(false, s, Alphanumeric) }
-func IsDigits(s string) bool            { return IsStringType(true, s, Digit) }
-func NoDigits(s string) bool            { return IsStringType(false, s, Digit) }
-func IsPunctuation(s string) bool       { return IsStringType(true, s, Punctuation) }
-func NoPunctuation(s string) bool       { return IsStringType(false, s, Punctuation) }
-func IsLowercase(s string) bool         { return IsStringType(true, s, Lower) }
-func NoLowercase(s string) bool         { return IsStringType(false, s, Lower) }
-func IsUppercase(s string) bool         { return IsStringType(true, s, Upper) }
-func NoUppercase(s string) bool         { return IsStringType(false, s, Upper) }
-func IsWhitespaces(s string) bool       { return IsStringType(true, s, Space) }
-func NoWhitespaces(s string) bool       { return IsStringType(false, s, Space) }
-func IsSymbols(s string) bool           { return IsStringType(true, s, Symbol) }
-func NoSymbols(s string) bool           { return IsStringType(false, s, Symbol) }
-func IsControlCharacters(s string) bool { return IsStringType(true, s, Control) }
-func NoControlCharacters(s string) bool { return IsStringType(false, s, Control) }
-func IsGraphicCharacters(s string) bool { return IsStringType(true, s, Graphic) }
-func NoGraphicCharacters(s string) bool { return IsStringType(false, s, Graphic) }
-func IsMarkCharacters(s string) bool    { return IsStringType(true, s, Mark) }
-func NoMarkCharacters(s string) bool    { return IsStringType(false, s, Mark) }
+func NoPrintable(s string) bool         { return StringContainsType(false, s, Printable) }
+func IsPrintable(s string) bool         { return StringContainsType(true, s, Printable) }
+func IsAlphabetic(s string) bool        { return StringContainsType(true, s, Alphabetic) }
+func NoAlphabetic(s string) bool        { return StringContainsType(false, s, Alphabetic) }
+func IsNumeric(s string) bool           { return StringContainsType(true, s, Numeric) }
+func NoNumeric(s string) bool           { return StringContainsType(false, s, Numeric) }
+func IsAlphanumeric(s string) bool      { return StringContainsType(true, s, Alphanumeric) }
+func NoAlphanumeric(s string) bool      { return StringContainsType(false, s, Alphanumeric) }
+func IsDigits(s string) bool            { return StringContainsType(true, s, Digit) }
+func NoDigits(s string) bool            { return StringContainsType(false, s, Digit) }
+func IsPunctuation(s string) bool       { return StringContainsType(true, s, Punctuation) }
+func NoPunctuation(s string) bool       { return StringContainsType(false, s, Punctuation) }
+func IsLowercase(s string) bool         { return StringContainsType(true, s, Lower) }
+func NoLowercase(s string) bool         { return StringContainsType(false, s, Lower) }
+func IsUppercase(s string) bool         { return StringContainsType(true, s, Upper) }
+func NoUppercase(s string) bool         { return StringContainsType(false, s, Upper) }
+func IsWhitespaces(s string) bool       { return StringContainsType(true, s, Space) }
+func NoWhitespaces(s string) bool       { return StringContainsType(false, s, Space) }
+func IsSymbols(s string) bool           { return StringContainsType(true, s, Symbol) }
+func NoSymbols(s string) bool           { return StringContainsType(false, s, Symbol) }
+func IsControlCharacters(s string) bool { return StringContainsType(true, s, Control) }
+func NoControlCharacters(s string) bool { return StringContainsType(false, s, Control) }
+func IsGraphicCharacters(s string) bool { return StringContainsType(true, s, Graphic) }
+func NoGraphicCharacters(s string) bool { return StringContainsType(false, s, Graphic) }
+func IsMarkCharacters(s string) bool    { return StringContainsType(true, s, Mark) }
+func NoMarkCharacters(s string) bool    { return StringContainsType(false, s, Mark) }
 
-func IsStringType(is bool, s string, cType characterType) bool {
+func StringContainsType(is bool, s string, cType characterType) bool {
 	// TODO: Id prefer to switch to a system that uses Is(rangeMap) rangeMap, so
 	// a broader one that accepts []rangeMap to let developers choose whatever combination
 	if cType == Alphabetic {

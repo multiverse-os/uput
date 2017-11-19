@@ -4,11 +4,68 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strconv"
-	"time"
 
-	"lib/uget/datatype"
+	"lib/uput/valid/input"
+	"lib/uput/valid/str"
 )
+
+//
+// Output Function
+// >> Output functions will be in the given datatype validation subpackage
+
+//
+// Generic/Dynamic Input Function
+func If(input interface{}) {
+	switch reflect.ValueOf(input).Kind() {
+	case reflect.String:
+		validstr.If(string(input))
+	}
+}
+
+//
+// Input Functions
+func IfString(input string) validstr.StringInput {
+	return validstr.If(input)
+}
+
+//func IfInt(input int) InputData {
+//	return InputData{
+//		DataType: reflect.Int,
+//		IntData:  input,
+//	}
+//}
+//func IfUInt(input uint) InputData {
+//	return InputData{
+//		DataType: reflect.Uint,
+//		UintData: input,
+//	}
+//}
+//func IfMap(input map[interface{}]interface{}) InputData {
+//	// If Map Length 0 (IsEmpty)
+//	if len(input) > 0 {
+//		// In A Map Each Key/Value Set Is An Entry
+//		value := reflect.ValueOf(input)
+//		fmt.Println("Reflected.ValueOf().Kind() type using basic type check: %s", value.Kind())
+//		firstKey := (value.MapKeys())[0]
+//		// Prepare InputData Based On Key Type/Kind
+//		switch firstKey.Kind() {
+//		case reflect.Array, reflect.String:
+//			// TODO: Add stringErrorMessages for [key validations]
+//		}
+//
+//		// Prepare InputData Based On Value Type/Kind
+//		//switch input[firstKey].Kind() {
+//		//case reflect.Array, reflect.String:
+//		//	// TODO: Add stringErrorMessages for [value validations]
+//		//}
+//	} else {
+//		// Empty/Nil Map will likely fail most validaitons
+//	}
+//	return InputData{
+//		DataType: reflect.Map,
+//		MapData:  input,
+//	}
+//}
 
 //
 // Making Errors?
@@ -20,7 +77,7 @@ import (
 // Reflect Notes:
 //
 // [deep equals]
-// People saying don't use reflect pkg? Okay well you better implement deep
+// People saying don't use reflect pkg? Okay well you better implement deep equals
 // that exists in this lib if you are not going to import it. Otherwise you
 // can not do secure comparisons.
 //
@@ -293,242 +350,6 @@ import (
 ///////////////////////////////////////////////////////////////////////
 
 //
-// Data Kind
-//////////////////////////////////////////////////////////////////////////////
-// Pkg ~@250 line on https://golang.org/src/reflect/type.go
-//
-// TODO: Don't need to initialize our own datatypes if we are already calling
-// reflect since it has the following:
-//
-// These data structures are known to the compiler
-// (../../cmd/internal/gc/reflect.go).
-//
-// A few are known to ../runtime/type.go to convey to debuggers.
-// They are also known to ../runtime/type.go.
-//
-// A Kind represents the specific kind of type that a Type represents.
-// The zero Kind is not a valid kind.
-//
-//    tflag is used by an rtype to signal what extra type information
-//    type tflag uint8
-// 		type Kind uint
-// 		const (
-// 			Invalid Kind = iota
-// 			Bool
-// 			Int
-// 			Int8
-// 			Int16
-// 			Int32
-// 			Int64
-// 			Uint
-// 			Uint8
-// 			Uint16
-// 			Uint32
-// 			Uint64
-// 			Uintptr
-// 			Float32
-// 			Float64
-// 			Complex64
-// 			Complex128
-// 			Array
-// 			Chan
-// 			Func
-// 			Interface
-// 			Map
-// 			Ptr
-// 			Slice
-// 			String
-// 			Struct
-// 			UnsafePointer
-// 		)
-//
-
-// TODO: I don't want to count over compared value,
-// so I need a len that wont count above x value
-//
-// Possible ways to not count more than
-// needed when checking.
-//
-// Size() uintptr, Bite() int
-
-// May just be useful reference
-//var kindNames = []string{
-//  Invalid:       "invalid",
-//  Bool:          "bool",
-//  Int:           "int",
-//  Int8:          "int8",
-//  Int16:         "int16",
-//  Int32:         "int32",
-//  Int64:         "int64",
-//  Uint:          "uint",
-//  Uint8:         "uint8",
-//  Uint16:        "uint16",
-//  Uint32:        "uint32",
-//  Uint64:        "uint64",
-//  Uintptr:       "uintptr",
-//  Float32:       "float32",
-//  Float64:       "float64",
-//  Complex64:     "complex64",
-//  Complex128:    "complex128",
-//  Array:         "array",
-//  Chan:          "chan",
-//  Func:          "func",
-//  Interface:     "interface",
-//  Map:           "map",
-//  Ptr:           "ptr",
-//  Slice:         "slice",
-//  String:        "string",
-//  Struct:        "struct",
-//  UnsafePointer: "unsafe.Pointer",
-//}
-
-// InputData.InputDataFunc(): Validation Functions
-//type InputDataFunc func() InputData
-
-type InputDataFunc func(input InputData) ValidateInput
-
-//type ValidateStringFunction func(input string) (output string, errors []error)
-type InputData struct {
-	DataType dataType.Kind
-	//fieldName string
-
-	StringData string
-	IntData    int
-	//UintData   uint
-	TimeType *time.Time
-	MapData  map[interface{}]interface{}
-
-	Errors        []error
-	ErrorMessages map[string]string
-
-	Validations map[string]InputDataFunc
-	IsValid     bool
-}
-
-// Extend this to work with: [struct, single-variable]
-type Validate interface {
-	//InputDataFunc() InputData
-
-	// InputData
-	Value() interface{}
-	SetValue(value interface{}) bool
-	IsType() DataType
-	// Errors
-	AddError(key, value string) InputData
-	PrintErrors()
-	// Validations
-	Validations() map[string]InputData
-	IsValid() (bool, interface{}, []error)
-}
-
-//
-// Error Functions
-func (input InputData) AddError(key, value string) InputData {
-	message := input.ErrorMessages[key]
-	if len(value) > 0 {
-		message += ": [ " + value + " ]"
-	}
-	input.Errors = append(input.Errors, errors.New(message))
-	return input
-}
-
-// Development Printing (remove later, don't assume logging style)
-func (input InputData) PrintErrors() {
-	// TODO: Obviously should just be marshalling to JSON and printing
-	// but this is temporary anyways
-	if len(input.Errors) > 0 {
-		fmt.Println("{")
-		fmt.Println("  \"error_count\": \"" + strconv.Itoa(len(input.Errors)) + ",")
-		fmt.Println("  \"errors\": {")
-		for _, err := range input.Errors {
-			fmt.Println("    \"string\": \"" + err.Error() + "\",")
-		}
-		fmt.Println("  }")
-		fmt.Println("}")
-	}
-}
-
-//
-// Output Function
-func (input InputData) IsValid() (bool, interface{}, []error) {
-	if input.DataType == dataType.String {
-		return (len(input.Errors) == 0), input.StringData, input.Errors
-	} else {
-		input.Errors = append(input.Errors, errors.New("unknown data type"))
-		return false, nil, input.Errors
-	}
-}
-
-//
-// Input Functions
-func IfString(input string) InputData {
-	return InputData{
-		DataType:      dataType.String,
-		StringData:    input,
-		ErrorMessages: make(map[string]string),
-	}
-}
-func IfInt(input int) InputData {
-	return InputData{
-		DataType: dataType.Int,
-		IntData:  input,
-	}
-}
-func IfUInt(input uint) InputData {
-	return InputData{
-		DataType: dataType.Uint,
-		UintData: input,
-	}
-}
-func IfMap(input map[interface{}]interface{}) InputData {
-	// If Map Length 0 (IsEmpty)
-	if len(input) > 0 {
-		// In A Map Each Key/Value Set Is An Entry
-		value := reflect.ValueOf(input)
-		fmt.Println("Input type using basic type check: %T", input.(type))
-		fmt.Println("Reflected.ValueOf() type using basic type check: %T", value.(type))
-		fmt.Println("Reflected.ValueOf().Kind() type using basic type check: %s", value.Kind())
-		firstKey := (value.MapKeys())[0]
-		// Prepare InputData Based On Key Type/Kind
-		switch firstKey.Kind() {
-		case reflect.Array, reflect.String:
-			// TODO: Add stringErrorMessages for [key validations]
-		}
-
-		// Prepare InputData Based On Value Type/Kind
-		//switch input[firstKey].Kind() {
-		//case reflect.Array, reflect.String:
-		//	// TODO: Add stringErrorMessages for [value validations]
-		//}
-	} else {
-		// Empty/Nil Map will likely fail most validaitons
-	}
-	return InputData{
-		DataType: dataType.Map,
-		MapData:  input,
-	}
-}
-
-// TODO: Should consider using reflect.Value().MustBe()
-// or at least look at the strategy used:
-// https://golang.org/src/reflect/value.go
-
-// Generic/Dynamic Input Function
-func If(input interface{}) InputData {
-	switch reflect.ValueOf(input).Kind() {
-	case reflect.Array, reflect.String:
-		fmt.Println("reflect.ValueOf(input).Kind(): ", reflect.ValueOf(input).Kind())
-		fmt.Println("reflect.ValueOf(input): ", reflect.ValueOf(input))
-
-		//IfString(string(input))
-	}
-	return InputData{
-		DataType: dataType.Map,
-		//mapData:  input,
-	}
-}
-
-//
 // Panic & Recover (similar to try/rescue in Ruby)
 /////////////////////////////////////////////////////
 //
@@ -676,39 +497,3 @@ func If(input interface{}) InputData {
 // Nearly every line above changed in some small way. The changes involved in
 // the rewrite are extensive but nearly entirely mechanical, just the kind of
 // thing that computers are great at doing.
-
-//
-// Basic Validation Types
-///////////////////////////////////////////////////////////////////////////////////
-//
-// Eventually valid should be able to handle any type of input and properly
-// classify it, have a working validation sub-package.
-//
-// bool
-// string
-//
-// Numeric types:
-//
-// uint        either 32 or 64 bits
-// int         same size as uint
-// uintptr     an unsigned integer large enough to store the uninterpreted bits of
-//             a pointer value
-// uint8       the set of all unsigned  8-bit integers (0 to 255)
-// uint16      the set of all unsigned 16-bit integers (0 to 65535)
-// uint32      the set of all unsigned 32-bit integers (0 to 4294967295)
-// uint64      the set of all unsigned 64-bit integers (0 to 18446744073709551615)
-//
-// int8        the set of all signed  8-bit integers (-128 to 127)
-// int16       the set of all signed 16-bit integers (-32768 to 32767)
-// int32       the set of all signed 32-bit integers (-2147483648 to 2147483647)
-// int64       the set of all signed 64-bit integers
-//             (-9223372036854775808 to 9223372036854775807)
-//
-// float32     the set of all IEEE-754 32-bit floating-point numbers
-// float64     the set of all IEEE-754 64-bit floating-point numbers
-//
-// complex64   the set of all complex numbers with float32 real and imaginary parts
-// complex128  the set of all complex numbers with float64 real and imaginary parts
-//
-// byte        alias for uint8
-// rune        alias for int32 (represents a Unicode code point)
