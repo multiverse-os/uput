@@ -98,14 +98,14 @@ func (input InputData) ValidateErrorMessages() InputData {
 }
 
 // Development Printing (remove later, don't assume logging style)
-func (in InputData) PrintErrors() {
+func PrintErrors(errors []error) {
 	// TODO: Obviously should just be marshalling to JSON and printing
 	// but this is temporary anyways
-	if len(in.Errors) > 0 {
+	if len(errors) > 0 {
 		fmt.Println("{")
-		fmt.Println("  \"error_count\": \"" + strconv.Itoa(len(in.Errors)) + ",")
+		fmt.Println("  \"error_count\": \"" + strconv.Itoa(len(errors)) + ",")
 		fmt.Println("  \"errors\": {")
-		for _, err := range in.Errors {
+		for _, err := range errors {
 			fmt.Println("    \"string\": \"" + err.Error() + "\",")
 		}
 		fmt.Println("  }")

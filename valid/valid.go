@@ -3,12 +3,21 @@ package valid
 import (
 	"reflect"
 
-	//"lib/uput/valid/input"
-	"lib/uput/valid/str"
+	validinput "lib/uput/valid/input"
+	validstr "lib/uput/valid/str"
 )
 
 //
-// Output Function
+// DEV
+func PrintErrors(errors []error) {
+	validinput.PrintErrors(errors)
+}
+func PrintValidations(validations []string) {
+	validinput.PrintValidations(validations)
+}
+
+//
+// Generic/Dynamic Output Function
 // >> Output functions will be in the given datatype validation subpackage
 
 //

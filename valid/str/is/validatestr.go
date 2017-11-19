@@ -1,4 +1,4 @@
-package validstr
+package validatestr
 
 import (
 	"regexp"
@@ -6,6 +6,14 @@ import (
 	"unicode"
 	"unicode/utf8"
 )
+
+//
+// 'Valid String' Subpackage
+//=================================================================
+// This subpackage provides the boolean checks for the validations
+// it can be used individually without the the rest of the more
+// complex validation system or calling in validstr or valid will
+// use this, so only import if you are using only this subpackage.
 
 // Catching look-alikes
 // string Normalization and UTF8 comparisons
@@ -87,6 +95,11 @@ func Validations() map[string]interface{} {
 func Validation(key string) interface{} {
 	return (Validations())[key]
 }
+
+//
+// Check Functions
+//===========================================================
+// These functions can be used individually if desired
 
 // Slice
 func IsInSlice(s string, lo []string) bool {

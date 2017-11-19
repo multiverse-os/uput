@@ -19,7 +19,7 @@ func DefaultErrorMessages() map[string]string {
 		"lessthan":    "length not less than",
 		"greaterthan": "length not greater than",
 		// Substring Validations
-		"containing":    "not containing substring",
+		"iscontaining":  "not containing substring",
 		"notcontaining": "ccontaining substring",
 		// Regex Validations
 		"regexmatch":   "no regex matches",
