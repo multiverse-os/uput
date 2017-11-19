@@ -9,7 +9,32 @@ import (
 )
 
 //
+// Making Errors?
+///////////////////////////////////////
+// Then follow the established convention of the message:
+// 			"reflect: call of " + e.Method + " on " + e.Kind.String() + " Value"
+
+//
 // Reflect Notes:
+//
+// [deep equals]
+// People saying don't use reflect pkg? Okay well you better implement deep
+// that exists in this lib if you are not going to import it. Otherwise you
+// can not do secure comparisons.
+//
+// 			func DeepEqual(x, y interface{}) bool {
+// 				if x == nil || y == nil {
+// 					return x == y
+// 				}
+// 				v1 := ValueOf(x)
+// 				v2 := ValueOf(y)
+// 				if v1.Type() != v2.Type() {
+// 					return false
+// 				}
+// 				return deepValueEqual(v1, v2, make(map[visit]bool), 0)
+// 			}
+//
+//
 //
 // reflect.Value has a function Interface() that converts it to interface{}
 // 		Keep in mind that a struct can not have more than 32 methods:
@@ -141,8 +166,83 @@ import (
 // 			return v.flag&flagAddr != 0
 // 		}
 //
-// [INFO][So how do we get our own len/count/size ?]
+// [!][INFO][Check if its even possible to interface?]
+// CanInterface reports whether Interface can be used without panicking.
+// Keep in mind that v Value is interface{}, so it could be any tyope.
 //
+// 			func (v Value) Type() Type
+// 			func (v Value) CanInterface() bool
+//
+//  Other IMPORTANT validations inside of reflect:
+//
+// 			func Zero(typ Type) Value
+//
+//      func (v Value) Len() int
+//      func (v Value) Cap() int
+// 			func (v Value) IsNil() bool
+// 			func (v Value) IsValid() bool
+// 			func (v Value) Kind() Kind
+// 			func (v Value) Addr() Value
+// 			func (v Value) CanSet() bool
+//
+// 			func (v Value) NumMethod() int
+// 			func (v Value) Method(i int) Value
+// 			func (v Value) MethodByName(name string) Value
+//
+//
+// For general [] type
+//
+//  		func (v Value) Index(i int) Value
+//
+// For Struct Type
+//
+//  		func (v Value) Field(i int) Value
+// 			func (v Value) NumField() int
+// 			func (v Value) FieldByIndex(index []int) Value
+// 			func (v Value) FieldByName(name string) Value
+// 			func (v Value) FieldByNameFunc(match func(string) bool) Value
+//
+// For Map Type
+//
+// 			func (v Value) Elem() Value
+// 			func (v Value) MapIndex(key Value) Value
+// 			func (v Value) MapKeys() []Value
+//
+// For Channel Type
+//
+// 			func (v Value) Recv() (x Value, ok bool)
+// 			func (v Value) TrySend(x Value) bool
+//
+// IMPORTANT TYPE validation
+//
+// 			func (v Value) OverflowComplex(x complex128) bool
+// 			func (v Value) OverflowFloat(x float64) bool
+// 			func (v Value) OverflowInt(x int64) bool
+// 			func (v Value) OverflowUint(x uint64) bool
+//
+//
+// CONVERTING FROM REFLECT
+//
+//      func (v Value) Interface() (i interface{})
+//
+// 			func (v Value) String() string // DOES NOT PANIC :)
+// 			func (v Value) Complex() complex128
+// 			func (v Value) Float() float64
+//     	func (v Value) Int() int64
+// 			func (v Value) Uint() uint64 // will panic if not uint
+//
+// 			func (v Value) Pointer() uintptr  // Does not require "unsafe" pkg
+//
+// Notice we use StringHeader and SliceHeader in Len() function!
+//
+// 			case Slice:
+// 				// Slice is bigger than a word; assume flagIndir.
+// 				return (*sliceHeader)(v.ptr).Len
+// 			case String:
+// 				// String is bigger than a word; assume flagIndir.
+// 				return (*stringHeader)(v.ptr).Len
+//
+// [!][INFO][So how do we get our own len/count/size ?]
 // [ Either use recover, to prevent these panics from crashing the program,
 // or reimplement the code without the panics so we save even more time not
 // panicing and recovering.]

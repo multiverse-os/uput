@@ -9,6 +9,9 @@ import (
 //
 // Error Tips
 ////////////////////////////////////////////////////////////////////
+// In other stdlibs errors look like:
+// 			"strings.Reader.UnreadByte: at beginning of string"
+//
 //
 // An error is anything that can describe itself as an error string
 // The idea is captured by the predefined, built-in interface type,
