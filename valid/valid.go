@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strconv"
 	"time"
+
+	"lib/uget/datatype"
 )
 
 //
@@ -33,8 +35,6 @@ import (
 // 				}
 // 				return deepValueEqual(v1, v2, make(map[visit]bool), 0)
 // 			}
-//
-//
 //
 // reflect.Value has a function Interface() that converts it to interface{}
 // 		Keep in mind that a struct can not have more than 32 methods:
@@ -72,7 +72,6 @@ import (
 //   details.
 //
 // 	========================/!\[ WARNING! ][ Bug Known In Reflect Package(go1.9.2) ]==
-//
 //
 //  ==/!\[ WARNING! ][ Thoughtless use of pointers is not secure! ]===================
 //  if size > 0 && lastzero == size {
@@ -189,7 +188,6 @@ import (
 // 			func (v Value) Method(i int) Value
 // 			func (v Value) MethodByName(name string) Value
 //
-//
 // For general [] type
 //
 //  		func (v Value) Index(i int) Value
@@ -219,7 +217,6 @@ import (
 // 			func (v Value) OverflowFloat(x float64) bool
 // 			func (v Value) OverflowInt(x int64) bool
 // 			func (v Value) OverflowUint(x uint64) bool
-//
 //
 // CONVERTING FROM REFLECT
 //
@@ -346,7 +343,8 @@ import (
 // 		)
 //
 
-// TODO: I don't to count over compared value
+// TODO: I don't want to count over compared value,
+// so I need a len that wont count above x value
 //
 // Possible ways to not count more than
 // needed when checking.
@@ -354,35 +352,35 @@ import (
 // Size() uintptr, Bite() int
 
 // May just be useful reference
-var kindNames = []string{
-	Invalid: "invalid",
-	Bool:    "bool",
-	Int:     "int",
-	//Int8:       "int8",
-	//Int16:      "int16",
-	//Int32:      "int32",
-	//Int64:      "int64",
-	Uint: "uint",
-	//Uint8:      "uint8",
-	//Uint16:     "uint16",
-	//Uint32:     "uint32",
-	//Uint64:     "uint64",
-	//Uintptr:    "uintptr",
-	//Float32:    "float32",
-	//Float64:    "float64",
-	//Complex64:  "complex64",
-	//Complex128: "complex128",
-	//Array:      "array",
-	//Chan:       "chan",
-	//Func:       "func",
-	//Interface:  "interface",
-	//Map:        "map",
-	//Ptr:        "ptr",
-	//Slice:      "slice",
-	String: "string",
-	//Struct:        "struct",
-	//UnsafePointer: "unsafe.Pointer",
-}
+//var kindNames = []string{
+//  Invalid:       "invalid",
+//  Bool:          "bool",
+//  Int:           "int",
+//  Int8:          "int8",
+//  Int16:         "int16",
+//  Int32:         "int32",
+//  Int64:         "int64",
+//  Uint:          "uint",
+//  Uint8:         "uint8",
+//  Uint16:        "uint16",
+//  Uint32:        "uint32",
+//  Uint64:        "uint64",
+//  Uintptr:       "uintptr",
+//  Float32:       "float32",
+//  Float64:       "float64",
+//  Complex64:     "complex64",
+//  Complex128:    "complex128",
+//  Array:         "array",
+//  Chan:          "chan",
+//  Func:          "func",
+//  Interface:     "interface",
+//  Map:           "map",
+//  Ptr:           "ptr",
+//  Slice:         "slice",
+//  String:        "string",
+//  Struct:        "struct",
+//  UnsafePointer: "unsafe.Pointer",
+//}
 
 // InputData.InputDataFunc(): Validation Functions
 //type InputDataFunc func() InputData
@@ -391,13 +389,12 @@ type InputDataFunc func(input InputData) ValidateInput
 
 //type ValidateStringFunction func(input string) (output string, errors []error)
 type InputData struct {
-	DataType dataType
+	DataType dataType.Kind
 	//fieldName string
 
 	StringData string
 	IntData    int
 	//UintData   uint
-	//BoolType   bool
 	TimeType *time.Time
 	MapData  map[interface{}]interface{}
 
@@ -415,7 +412,7 @@ type Validate interface {
 	// InputData
 	Value() interface{}
 	SetValue(value interface{}) bool
-	IsType() dataType
+	IsType() DataType
 	// Errors
 	AddError(key, value string) InputData
 	PrintErrors()
@@ -454,7 +451,7 @@ func (input InputData) PrintErrors() {
 //
 // Output Function
 func (input InputData) IsValid() (bool, interface{}, []error) {
-	if input.DataType == StringType {
+	if input.DataType == dataType.String {
 		return (len(input.Errors) == 0), input.StringData, input.Errors
 	} else {
 		input.Errors = append(input.Errors, errors.New("unknown data type"))
@@ -466,20 +463,20 @@ func (input InputData) IsValid() (bool, interface{}, []error) {
 // Input Functions
 func IfString(input string) InputData {
 	return InputData{
-		DataType:      StringType,
+		DataType:      dataType.String,
 		StringData:    input,
 		ErrorMessages: make(map[string]string),
 	}
 }
 func IfInt(input int) InputData {
 	return InputData{
-		DataType: IntType,
+		DataType: dataType.Int,
 		IntData:  input,
 	}
 }
 func IfUInt(input uint) InputData {
 	return InputData{
-		DataType: UintType,
+		DataType: dataType.Uint,
 		UintData: input,
 	}
 }
@@ -507,7 +504,7 @@ func IfMap(input map[interface{}]interface{}) InputData {
 		// Empty/Nil Map will likely fail most validaitons
 	}
 	return InputData{
-		DataType: MapType,
+		DataType: dataType.Map,
 		MapData:  input,
 	}
 }
@@ -526,7 +523,7 @@ func If(input interface{}) InputData {
 		//IfString(string(input))
 	}
 	return InputData{
-		DataType: MapType,
+		DataType: dataType.Map,
 		//mapData:  input,
 	}
 }
