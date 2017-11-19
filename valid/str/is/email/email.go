@@ -1,4 +1,4 @@
-package verify
+package isemail
 
 // https://www.webdigi.co.uk/blog/2009/how-to-check-if-an-email-address-exists-without-sending-an-email/
 // TODO:
@@ -16,18 +16,16 @@ import (
 
 // VerifyAddress checks an address
 // returns: AddressOK , SMTP MSG, Error
-func VerifyAddress(emailAddress string) (bool, string, error) {
-
-	// Parse the address into a user and a host part
-	parts := strings.Split(emailAddress, "@")
+func Validate(s string) (bool, string, error) {
+	emailParts := strings.Split(s, "@")
 	if len(parts) != 2 {
-		return false, "", fmt.Errorf("verifyAddress: Can not parse this email address: %q", emailAddress)
+		return false, "", errors.New("Invalid, email missing @")
 	}
-	log.Println(parts)
+	log.Println(emailParts)
 
 	// Lookup an MX server for this address
 	// Pick one at random? Or??
-	servers, err := net.LookupMX(parts[1])
+	servers, err := net.LookupMX(emailParts[1])
 	if err != nil {
 		return false, "", fmt.Errorf("verifyAddress: LookupMX failed: %q", err)
 	}

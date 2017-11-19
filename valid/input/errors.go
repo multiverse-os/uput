@@ -14,7 +14,6 @@ import (
 // In other stdlibs errors look like:
 // 			"strings.Reader.UnreadByte: at beginning of string"
 //
-//
 // An error is anything that can describe itself as an error string
 // The idea is captured by the predefined, built-in interface type,
 // error, with its single method, Error, returning a string:
@@ -33,6 +32,36 @@ import (
 //         e.When, e.What)
 // }
 //
+
+//
+// Append Errors
+func (input InputData) AppendError(key string, values []string) InputData {
+	switch lenValues := len(values); lenValues {
+	case 0:
+		input.Errors = append(input.Errors, errors.New(input.DataTypeName+": "+input.ErrorMessages[key]))
+	case 1:
+		input.Errors = append(input.Errors, errors.New(input.DataTypeName+": "+input.ErrorMessages[key]+": "+values[0]))
+	case 2:
+		input.Errors = append(input.Errors, errors.New(input.DataTypeName+": "+input.ErrorMessages[key]+": "+values[0]+" - "+values[1]))
+	default:
+		input.Errors = append(input.Errors, errors.New(input.DataTypeName+": "+input.ErrorMessages[key]+": [ "+strings.Join(values, ", ")+" ]"))
+	}
+	return input
+}
+
+//
+// Localize Error Messages
+func (input InputData) UpdateErrorMessage(key, message string) {
+	// TODO: Validate the custom error messages
+	input.ErrorMessages[key] = message
+}
+
+func (input InputData) UpdateErrorMessages(errorMessages map[string]string) {
+	// TODO: Should it only be able to update existing messages?
+	for key, message := range errorMessages {
+		input.UpdateErrorMessage(key, message)
+	}
+}
 
 //
 // Transformations / Normalization
@@ -112,18 +141,4 @@ func (input InputData) PrintErrors() {
 		fmt.Println("  }")
 		fmt.Println("}")
 	}
-}
-
-func (input InputData) AppendError(key string, values []string) InputData {
-	switch lenValues := len(values); lenValues {
-	case 0:
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages[key]))
-	case 1:
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages[key]+": "+values[0]))
-	case 2:
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages[key]+": "+values[0]+" - "+values[1]))
-	default:
-		input.Errors = append(input.Errors, errors.New(input.ErrorMessages[key]+": [ "+strings.Join(values, ", ")+" ]"))
-	}
-	return input
 }

@@ -1,4 +1,4 @@
-package norma
+package isfilename
 
 import (
 	"fmt"

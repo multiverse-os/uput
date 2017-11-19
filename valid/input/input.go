@@ -9,16 +9,11 @@ type InputData struct {
 	DataTypeName           string
 	Data                   interface{}
 	Errors                 []error
-	ErrorMessages          map[string]string
 	Validations            []string
+	ErrorMessages          map[string]string
 	ValidationDescriptions map[string]string
+	CustomValidations      map[string]interface{}
 	Valid                  bool
 	// Struct Validation
 	//fieldName string
 }
-
-//
-// Generic Output Function
-//func (input InputData) IsValid() (bool, interface{}, []error) {
-//	return (len(input.Errors) == 0), input.Data, input.Errors
-//}

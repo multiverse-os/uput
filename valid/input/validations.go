@@ -8,14 +8,42 @@ import (
 )
 
 //
-// Validation Descriptions
+// Append Validation
 //==================================================================
+func (input InputData) AppendValidation(key string, values []string) InputData {
+	switch lenValues := len(values); lenValues {
+	case 0:
+		input.Validations = append(input.Validations, input.DataTypeName+": "+input.ValidationDescriptions[key])
+	case 1:
+		input.Validations = append(input.Validations, input.DataTypeName+": "+input.ValidationDescriptions[key]+": "+values[0])
+	case 2:
+		input.Validations = append(input.Validations, input.DataTypeName+": "+input.ValidationDescriptions[key]+": "+values[0]+" - "+values[1])
+	default:
+		input.Validations = append(input.Validations, input.DataTypeName+": "+input.ValidationDescriptions[key]+": [ "+strings.Join(values, ", ")+" ]")
+	}
+	return input
+}
+
+//
+// Localize Validation Descriptions
+//==================================================================
+func (input InputData) UpdateValidationDescription(key, description string) {
+	// TODO: Validate the custom error messages
+	input.ValidationDescriptions[key] = description
+}
+func (input InputData) UpdateValidationDescriptions(descriptions map[string]string) {
+	// TODO: Should it only be able to update existing messages?
+	for key, description := range descriptions {
+		input.UpdateValidationDescription(key, description)
+	}
+}
 
 //
 // Transformations / Normalization
-
+//==================================================================
 // Validation Description (string) Normalization
 // https://blog.golang.org/normalization
+
 func NormalizeValidationDescription(description string) string {
 	for index, character := range description {
 		// Replace alternative whitespace characters
@@ -29,6 +57,7 @@ func NormalizeValidationDescription(description string) string {
 
 //
 // Validation Key/Description (string) Validation
+//==================================================================
 func IsValidationKeyValid(key string) bool {
 	// valid.IfValidationKey.IsBetween(2, 12)
 	if !(2 <= len(key) && len(key) <= 12) {
@@ -57,9 +86,6 @@ func IsValidationDescriptionValid(description string) bool {
 	}
 	return true
 }
-
-//
-// InputData []validationDescriptions Validation
 func (input InputData) ValidateValidationDescription() InputData {
 	for key, value := range input.ErrorMessages {
 		// valid.IfErrorMessages.IsLessThan(255)
@@ -75,7 +101,9 @@ func (input InputData) ValidateValidationDescription() InputData {
 	return input
 }
 
+//
 // Development Printing (remove later, don't assume logging style)
+//==================================================================
 func (input InputData) PrintValidations() {
 	// TODO: Obviously should just be marshalling to JSON and printing
 	// but this is temporary anyways
@@ -89,18 +117,4 @@ func (input InputData) PrintValidations() {
 		fmt.Println("  }")
 		fmt.Println("}")
 	}
-}
-
-func (input InputData) AppendValidation(key string, values []string) InputData {
-	switch lenValues := len(values); lenValues {
-	case 0:
-		input.Validations = append(input.Validations, input.ValidationDescriptions[key])
-	case 1:
-		input.Validations = append(input.Validations, input.ValidationDescriptions[key]+": "+values[0])
-	case 2:
-		input.Validations = append(input.Validations, input.ValidationDescriptions[key]+": "+values[0]+" - "+values[1])
-	default:
-		input.Validations = append(input.Validations, input.ValidationDescriptions[key]+": [ "+strings.Join(values, ", ")+" ]")
-	}
-	return input
 }

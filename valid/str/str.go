@@ -43,6 +43,20 @@ func (s StringInput) IsValid() (bool, string, []error) {
 }
 
 //
+// Custom Validations
+// ==========================================================================
+
+func (s StringInput) AddCustomValidation(key, description, errorMessage string, function, values interface{}) {
+	s.input.ValidationDescriptions[key] = description
+	s.input.ErrorMessages[key] = errorMessage
+	// Add to pool of custom validations
+}
+
+func (s StringInput) Validate(key string, values interface{}) {
+	//s.input.CustomValidations[key](values)
+}
+
+//
 // Chainable String Validations
 // ==========================================================================
 
