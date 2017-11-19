@@ -1,11 +1,9 @@
 package valid
 
 import (
-	"errors"
-	"fmt"
 	"reflect"
 
-	"lib/uput/valid/input"
+	//"lib/uput/valid/input"
 	"lib/uput/valid/str"
 )
 
@@ -16,9 +14,10 @@ import (
 //
 // Generic/Dynamic Input Function
 func If(input interface{}) {
-	switch reflect.ValueOf(input).Kind() {
+	switch inputValue := reflect.ValueOf(input); inputValue.Kind() {
 	case reflect.String:
-		validstr.If(string(input))
+
+		validstr.If(inputValue.String())
 	}
 }
 
