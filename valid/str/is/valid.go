@@ -57,10 +57,10 @@ func IsInSlice(s string, lo []string) bool {
 
 //
 // String Length
-func NotEmpty(s string) bool              { return (len(s) > 0) }
-func IsBetween(s string, gt, lt int) bool { return (len(s) > gt || len(s) < lt) }
-func IsLessThan(s string, lt int) bool    { return (len(s) < lt) }
-func IsGreaterThan(s string, gt int) bool { return (len(s) > gt) }
+func NotEmpty(s string) bool                  { return (len(s) > 0) }
+func IsBetween(s string, start, end int) bool { return (len(s) >= start && len(s) <= end) }
+func IsLessThan(s string, lt int) bool        { return (len(s) < lt) }
+func IsGreaterThan(s string, gt int) bool     { return (len(s) > gt) }
 
 //
 // strings.Contains substring value
