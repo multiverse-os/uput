@@ -88,11 +88,23 @@ func (s StringInput) NotIn(list []string) StringInput {
 //
 // String Length Validations
 func (s StringInput) Required() StringInput {
-	s.input = s.input.AppendValidation("required", nil, validate.NotEmpty(s.stringData))
+	s.input = s.input.AppendValidation("required", nil, validate.IsNotEmpty(s.stringData))
+	return s
+}
+func (s StringInput) IsEmpty() StringInput {
+	s.input = s.input.AppendValidation("isempty", nil, validate.IsEmpty(s.stringData))
 	return s
 }
 func (s StringInput) NotEmpty() StringInput {
-	s.input = s.input.AppendValidation("notempty", nil, validate.NotEmpty(s.stringData))
+	s.input = s.input.AppendValidation("notempty", nil, validate.IsNotEmpty(s.stringData))
+	return s
+}
+func (s StringInput) IsBlank() StringInput {
+	s.input = s.input.AppendValidation("isempty", nil, validate.IsBlank(s.stringData))
+	return s
+}
+func (s StringInput) IsNotBlank() StringInput {
+	s.input = s.input.AppendValidation("isempty", nil, validate.IsNotBlank(s.stringData))
 	return s
 }
 func (s StringInput) IsBetween(start, end int) StringInput {
@@ -154,7 +166,7 @@ func (s StringInput) NoAlphabetic() StringInput {
 	s.input = s.input.AppendValidation("noalphabetic", nil, validate.Alphabetic(s.stringData, false, 0))
 	return s
 }
-func (s StringInput) MinAlphabeticCount(count uint8) StringInput {
+func (s StringInput) MinAlphabeticCount(count int) StringInput {
 	s.input = s.input.AppendValidation("alphabetic", nil, validate.Alphabetic(s.stringData, true, count))
 	return s
 }
@@ -174,7 +186,7 @@ func (s StringInput) NoNumeric() StringInput {
 	s.input = s.input.AppendValidation("nonumeric", nil, validate.Numeric(s.stringData, false, 0))
 	return s
 }
-func (s StringInput) MinNumericCount(count uint8) StringInput {
+func (s StringInput) MinNumericCount(count int) StringInput {
 	s.input = s.input.AppendValidation("numeric", nil, validate.Numeric(s.stringData, true, count))
 	return s
 }
@@ -186,7 +198,7 @@ func (s StringInput) NoUppercase() StringInput {
 	s.input = s.input.AppendValidation("nouppercase", nil, validate.Uppercase(s.stringData, false, 0))
 	return s
 }
-func (s StringInput) MinUppercaseCount(count uint8) StringInput {
+func (s StringInput) MinUppercaseCount(count int) StringInput {
 	s.input = s.input.AppendValidation("uppercase", nil, validate.Uppercase(s.stringData, true, count))
 	return s
 }
@@ -198,7 +210,7 @@ func (s StringInput) NoLowercase() StringInput {
 	s.input = s.input.AppendValidation("nolowercase", nil, validate.Lowercase(s.stringData, false, 0))
 	return s
 }
-func (s StringInput) MinLowercaseCount(count uint8) StringInput {
+func (s StringInput) MinLowercaseCount(count int) StringInput {
 	s.input = s.input.AppendValidation("lowercase", nil, validate.Lowercase(s.stringData, true, count))
 	return s
 }
@@ -218,7 +230,7 @@ func (s StringInput) NoPunctuation() StringInput {
 	s.input = s.input.AppendValidation("nopunctuation", nil, validate.Punctuation(s.stringData, false, 0))
 	return s
 }
-func (s StringInput) MinPunctuationCount(count uint8) StringInput {
+func (s StringInput) MinPunctuationCount(count int) StringInput {
 	s.input = s.input.AppendValidation("nopunctuation", nil, validate.Punctuation(s.stringData, true, count))
 	return s
 }
@@ -230,7 +242,7 @@ func (s StringInput) NoSymbols() StringInput {
 	s.input = s.input.AppendValidation("nosymbols", nil, validate.Symbols(s.stringData, false, 0))
 	return s
 }
-func (s StringInput) MinSymbolCount(count uint8) StringInput {
+func (s StringInput) MinSymbolCount(count int) StringInput {
 	s.input = s.input.AppendValidation("symbols", nil, validate.Symbols(s.stringData, true, count))
 	return s
 }
@@ -274,7 +286,7 @@ func (s StringInput) NoDigits() StringInput {
 	s.input = s.input.AppendValidation("nodigits", nil, validate.Digits(s.stringData, false, 0))
 	return s
 }
-func (s StringInput) MinDigitCount(count uint8) StringInput {
+func (s StringInput) MinDigitCount(count int) StringInput {
 	s.input = s.input.AppendValidation("nodigits", nil, validate.Digits(s.stringData, true, count))
 	return s
 }

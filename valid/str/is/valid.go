@@ -57,7 +57,10 @@ func IsInSlice(s string, lo []string) bool {
 
 //
 // String Length
-func NotEmpty(s string) bool                  { return (len(s) > 0) }
+func IsEmpty(s string) bool                   { return len(s) == 0 }
+func IsNotEmpty(s string) bool                { return !IsEmpty(s) }
+func IsBlank(s string) bool                   { return len(strings.TrimSpace(s)) == 0 }
+func IsNotBlank(text string) bool             { return !IsBlank(text) }
 func IsBetween(s string, start, end int) bool { return (len(s) >= start && len(s) <= end) }
 func IsLessThan(s string, lt int) bool        { return (len(s) < lt) }
 func IsGreaterThan(s string, gt int) bool     { return (len(s) > gt) }
@@ -79,21 +82,21 @@ func IsUTF8(s string) bool { return utf8.ValidString(s) }
 
 //
 // UTF Rune Validations
-func Alphabetic(s string, is bool, count uint8) bool { return isType(s, IsLetter, is, count) }
-func Alphanumeric(s string, is bool, count uint8) bool {
+func Alphabetic(s string, is bool, count int) bool { return isType(s, IsLetter, is, count) }
+func Alphanumeric(s string, is bool, count int) bool {
 	return isType(s, IsLetterOrNumber, is, count)
 }
-func Numeric(s string, is bool, count uint8) bool           { return isType(s, IsNumber, is, count) }
-func Punctuation(s string, is bool, count uint8) bool       { return isType(s, IsPunct, is, count) }
-func Lowercase(s string, is bool, count uint8) bool         { return isType(s, IsLower, is, count) }
-func Uppercase(s string, is bool, count uint8) bool         { return isType(s, IsUpper, is, count) }
-func Printable(s string, is bool, count uint8) bool         { return isType(s, IsPrint, is, count) }
-func Whitespaces(s string, is bool, count uint8) bool       { return isType(s, IsSpace, is, count) }
-func Symbols(s string, is bool, count uint8) bool           { return isType(s, IsSymbol, is, count) }
-func ControlCharacters(s string, is bool, count uint8) bool { return isType(s, IsControl, is, count) }
-func GraphicCharacters(s string, is bool, count uint8) bool { return isType(s, IsGraphic, is, count) }
-func MarkCharacters(s string, is bool, count uint8) bool    { return isType(s, IsMark, is, count) }
-func Digits(s string, is bool, count uint8) bool            { return isType(s, IsDigit, is, count) }
+func Numeric(s string, is bool, count int) bool           { return isType(s, IsNumber, is, count) }
+func Punctuation(s string, is bool, count int) bool       { return isType(s, IsPunct, is, count) }
+func Lowercase(s string, is bool, count int) bool         { return isType(s, IsLower, is, count) }
+func Uppercase(s string, is bool, count int) bool         { return isType(s, IsUpper, is, count) }
+func Printable(s string, is bool, count int) bool         { return isType(s, IsPrint, is, count) }
+func Whitespaces(s string, is bool, count int) bool       { return isType(s, IsSpace, is, count) }
+func Symbols(s string, is bool, count int) bool           { return isType(s, IsSymbol, is, count) }
+func ControlCharacters(s string, is bool, count int) bool { return isType(s, IsControl, is, count) }
+func GraphicCharacters(s string, is bool, count int) bool { return isType(s, IsGraphic, is, count) }
+func MarkCharacters(s string, is bool, count int) bool    { return isType(s, IsMark, is, count) }
+func Digits(s string, is bool, count int) bool            { return isType(s, IsDigit, is, count) }
 
 func runeOfType(r rune, rType runeType) bool {
 	switch rType {
@@ -128,19 +131,73 @@ func runeOfType(r rune, rType runeType) bool {
 	}
 }
 
-func isType(s string, rType runeType, is bool, count uint8) bool {
-	typeCount := uint8(0)
+//
+// Reference
+//====================================================
+//
+//For '\b':
+//	is control rune
+//	is not printable rune
+//For '5':
+//	is digit rune
+//	is graphic rune
+//	is number rune
+//	is printable rune
+//For 'Ὂ':
+//	is graphic rune
+//	is letter rune
+//	is printable rune
+//	is upper case rune
+//For 'g':
+//	is graphic rune
+//	is letter rune
+//	is lower case rune
+//	is printable rune
+//For '̀':
+//	is graphic rune
+//	is mark rune
+//	is printable rune
+//For '9':
+//	is digit rune
+//	is graphic rune
+//	is number rune
+//	is printable rune
+//For '!':
+//	is graphic rune
+//	is printable rune
+//	is punct rune
+//For ' ':
+//	is graphic rune
+//	is printable rune
+//	is space rune
+//For '℃':
+//	is graphic rune
+//	is printable rune
+//	is symbol rune
+//For 'ᾭ':
+//	is graphic rune
+//	is letter rune
+//	is printable rune
+//	is title case rune
+//For 'G':
+//	is graphic rune
+//	is letter rune
+//	is printable rune
+//	is upper case rune
+
+func isType(s string, rType runeType, is bool, count int) bool {
+	typeCount := 0
+	if count == 0 {
+		count = len(s)
+	}
 	for _, r := range s {
-		if !(is == runeOfType(r, rType)) {
-			switch {
-			case count == 0:
-				return false
-			case (typeCount < count):
+		if is == runeOfType(r, rType) {
+			if typeCount < count {
 				typeCount++
-			case (typeCount >= count):
-				return false
+			} else if typeCount == count {
+				return true
 			}
 		}
 	}
-	return true
+	return (typeCount >= count)
 }

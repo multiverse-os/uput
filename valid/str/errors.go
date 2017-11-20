@@ -14,6 +14,10 @@ func DefaultValidationText() map[string]*validinput.ValidationText {
 			Error:       "included in",
 			Description: "not included in",
 		},
+		"required": &validinput.ValidationText{
+			Error:       "is not present",
+			Description: "is requred",
+		},
 		"empty": &validinput.ValidationText{
 			Error:       "is not empty",
 			Description: "is empty",
@@ -21,6 +25,14 @@ func DefaultValidationText() map[string]*validinput.ValidationText {
 		"notempty": &validinput.ValidationText{
 			Error:       "is empty",
 			Description: "is not empty",
+		},
+		"blank": &validinput.ValidationText{
+			Error:       "is not blank",
+			Description: "is blank",
+		},
+		"notblank": &validinput.ValidationText{
+			Error:       "is blank",
+			Description: "is not blank",
 		},
 		"between": &validinput.ValidationText{
 			Error:       "length not between",
