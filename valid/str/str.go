@@ -1,6 +1,7 @@
 package validstr
 
 import (
+	"fmt" // DEV
 	"reflect"
 	"strconv"
 
@@ -8,7 +9,6 @@ import (
 	validate "lib/uput/valid/str/is"
 )
 
-// Nesting the generic inputData type
 type StringInput struct {
 	stringData string
 	input      validinput.InputData
@@ -21,45 +21,56 @@ func If(s string) StringInput {
 	return StringInput{
 		stringData: s,
 		input: validinput.InputData{
-			DataType:               reflect.String,
-			DataTypeName:           "string",
-			Field:                  false,
-			Valid:                  false,
-			ErrorMessages:          (DefaultErrorMessages()),
-			ValidationDescriptions: (DefaultValidationDescriptions()),
+			DataType:       reflect.String,
+			DataTypeName:   "string",
+			ValidationText: (DefaultValidationText()),
 		},
 	}
 }
 
+func (s StringInput) isValid() bool {
+	return (len(s.input.InputErrors) == 0)
+}
+
 //
 // Validation Output Function
+// ==========================================================================
 func (s StringInput) IsValid() (bool, string, []error) {
-	// TODO: Now that validations are tracked, a better ouput that includes errors / validations
-	// can be presented
-
-	// TODO: Potentially remove validations in each check in favor of a generic loop
-	// that runs the corresponding function and adds corresponding error
 	s.input.PrintValidations()
 	s.input.PrintErrors()
-	return (len(s.input.Errors) == 0), s.stringData, s.input.Errors
+	return s.isValid(), s.stringData, s.input.Errors()
 }
 
 //
 // Custom Validations
 // ==========================================================================
 
-func (s StringInput) isValid() bool {
-	return (len(s.input.Errors) == 0)
+// TODO: Add niche validations from /is/ like /is/email
+
+//
+// Localize Error Message & Validation Descriptions
+// ==========================================================================
+
+func (s StringInput) ErrorMessage(message string) StringInput {
+	lastError := s.input.LastInputError()
+	fmt.Println("test message: ", message)
+	fmt.Println("last validation: ", lastError)
+	return s
 }
 
-func (s StringInput) AddCustomValidation(key, description, errorMessage string, function, values interface{}) {
-	s.input.ValidationDescriptions[key] = description
-	s.input.ErrorMessages[key] = errorMessage
-	// Add to pool of custom validations
+func (s StringInput) UpdateValidationText(key string, text validinput.ValidationText) map[string]validinput.ValidationText {
+	s.input.ValidationText = s.input.UpdateText(key, text)
+	return s.input.ValidationText
 }
 
-func (s StringInput) Validate(key string, values interface{}) {
-	//s.input.CustomValidations[key](values)
+func (s StringInput) UpdateErrorMessages(errorMessages map[string]string) map[string]validinput.ValidationText {
+	s.input.ValidationText = s.input.UpdateValidationText("Error", errorMessages)
+	return s.input.ValidationText
+}
+
+func (s StringInput) UpdateValidationDescriptions(descriptions map[string]string) map[string]validinput.ValidationText {
+	s.input.ValidationText = s.input.UpdateValidationText("Description", descriptions)
+	return s.input.ValidationText
 }
 
 //

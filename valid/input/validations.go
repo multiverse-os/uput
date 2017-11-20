@@ -2,102 +2,54 @@ package validinput
 
 import (
 	"fmt"
-	"strconv" // development package
+	"strconv" // DEV
 	"strings"
-	"unicode"
 )
+
+type Validation struct {
+	DataType    string
+	Key         string
+	Description string
+	Values      []string
+}
+
+//
+// Return String
+//==================================================================
+func (v Validation) String() string {
+	switch len(v.Values) {
+	case 0:
+		return v.DataType + ": " + v.Description
+	case 1:
+		return v.DataType + ": " + v.Description + ": " + v.Values[0]
+	case 2:
+		return v.DataType + ": " + v.Description + ": " + v.Values[0] + "-" + v.Values[1]
+	default:
+		return v.DataType + ": " + v.Description + ": [ " + strings.Join(v.Values, ", ") + " ]"
+	}
+}
+
+//
+// Validation Helpers
+//==================================================================
+func (input InputData) LastValidation() Validation {
+	if len(input.Validations) > 0 {
+		return input.Validations[len(input.Validations)-1]
+	}
+	return Validation{}
+}
 
 //
 // Append Validation
 //==================================================================
 func (input InputData) AppendValidation(key string, values []string) InputData {
-	switch lenValues := len(values); lenValues {
-	case 0:
-		input.Validations = append(input.Validations, input.DataTypeName+": "+input.ValidationDescriptions[key])
-	case 1:
-		input.Validations = append(input.Validations, input.DataTypeName+": "+input.ValidationDescriptions[key]+": "+values[0])
-	case 2:
-		input.Validations = append(input.Validations, input.DataTypeName+": "+input.ValidationDescriptions[key]+": "+values[0]+" - "+values[1])
-	default:
-		input.Validations = append(input.Validations, input.DataTypeName+": "+input.ValidationDescriptions[key]+": [ "+strings.Join(values, ", ")+" ]")
+	validation := Validation{
+		DataType:    input.DataTypeName,
+		Key:         key,
+		Description: input.ValidationText[key].Description,
+		Values:      values,
 	}
-	return input
-}
-
-//
-// Localize Validation Descriptions
-//==================================================================
-func (input InputData) UpdateValidationDescription(key, description string) {
-	// TODO: Validate the custom error messages
-	input.ValidationDescriptions[key] = description
-}
-func (input InputData) UpdateValidationDescriptions(descriptions map[string]string) {
-	// TODO: Should it only be able to update existing messages?
-	for key, description := range descriptions {
-		input.UpdateValidationDescription(key, description)
-	}
-}
-
-//
-// Transformations / Normalization
-//==================================================================
-// Validation Description (string) Normalization
-// https://blog.golang.org/normalization
-
-func NormalizeValidationDescription(description string) string {
-	for index, character := range description {
-		// Replace alternative whitespace characters
-		fmt.Println("i, c: ", index, character)
-		if unicode.IsSpace(character) {
-			//description[index] = " "
-		}
-	}
-	return description
-}
-
-//
-// Validation Key/Description (string) Validation
-//==================================================================
-func IsValidationKeyValid(key string) bool {
-	// valid.IfValidationKey.IsBetween(2, 12)
-	if !(2 <= len(key) && len(key) <= 12) {
-		return false
-	} else {
-		// valid.IfValidationKey.IsAlphanumeric
-		for _, c := range key {
-			if !unicode.IsLetter(c) && !unicode.IsNumber(c) || unicode.IsSpace(c) {
-				return false
-			}
-		}
-	}
-	return true
-}
-func IsValidationDescriptionValid(description string) bool {
-	// valid.IfValidationDescription.IsBetween(2, 64)
-	if !(2 <= len(description) && len(description) <= 64) {
-		return false
-	} else {
-		// valid.IfValidationKey.IsPrintable
-		for _, c := range description {
-			if !unicode.IsPrint(c) {
-				return false
-			}
-		}
-	}
-	return true
-}
-func (input InputData) ValidateValidationDescription() InputData {
-	for key, value := range input.ErrorMessages {
-		// valid.IfErrorMessages.IsLessThan(255)
-		if len(key) <= 255 {
-			if !IsValidationKeyValid(key) {
-				// If key is invalid, delete the errorMessage from map
-			}
-			if !IsValidationDescriptionValid(value) {
-				// If message is invalid, replace message with key
-			}
-		}
-	}
+	input.Validations = append(input.Validations, validation)
 	return input
 }
 
@@ -112,7 +64,7 @@ func (input InputData) PrintValidations() {
 		fmt.Println("  \"validation_count\": " + strconv.Itoa(len(input.Validations)) + ",")
 		fmt.Println("  \"validations\": {")
 		for _, v := range input.Validations {
-			fmt.Println("    \"" + v + "\",")
+			fmt.Println("    \"" + v.String() + "\",")
 		}
 		fmt.Println("  }")
 		fmt.Println("}")
