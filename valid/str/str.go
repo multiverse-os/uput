@@ -16,7 +16,7 @@ type StringInput struct {
 
 //
 // Validation Input Function
-// TODO: Add way to customize errors
+// ==========================================================================
 func If(s string) StringInput {
 	return StringInput{
 		stringData: s,
@@ -27,9 +27,8 @@ func If(s string) StringInput {
 		},
 	}
 }
-
 func (s StringInput) isValid() bool {
-	return (len(s.input.InputErrors) == 0)
+	return (s.input.IsValid())
 }
 
 //
@@ -50,27 +49,25 @@ func (s StringInput) IsValid() (bool, string, []error) {
 //
 // Localize Error Message & Validation Descriptions
 // ==========================================================================
-
 func (s StringInput) ErrorMessage(message string) StringInput {
-	lastError := s.input.LastInputError()
+	s.input.ValidationText = s.input.UpdateLastValidationText(validinput.ValidationText{Error: message})
 	fmt.Println("test message: ", message)
-	fmt.Println("last validation: ", lastError)
 	return s
 }
 
-func (s StringInput) UpdateValidationText(key string, text validinput.ValidationText) map[string]validinput.ValidationText {
-	s.input.ValidationText = s.input.UpdateText(key, text)
-	return s.input.ValidationText
+func (s StringInput) UpdateValidationText(key string, text validinput.ValidationText) StringInput {
+	s.input.ValidationText = s.input.SetValidationText(key, text)
+	return s
 }
 
-func (s StringInput) UpdateErrorMessages(errorMessages map[string]string) map[string]validinput.ValidationText {
-	s.input.ValidationText = s.input.UpdateValidationText("Error", errorMessages)
-	return s.input.ValidationText
+func (s StringInput) UpdateErrorMessages(errorMessages map[string]string) StringInput {
+	s.input.ValidationText = s.input.SetAllTextOfType("Error", errorMessages)
+	return s
 }
 
-func (s StringInput) UpdateValidationDescriptions(descriptions map[string]string) map[string]validinput.ValidationText {
-	s.input.ValidationText = s.input.UpdateValidationText("Description", descriptions)
-	return s.input.ValidationText
+func (s StringInput) UpdateValidationDescriptions(descriptions map[string]string) StringInput {
+	s.input.ValidationText = s.input.SetAllTextOfType("Description", descriptions)
+	return s
 }
 
 //
@@ -80,130 +77,74 @@ func (s StringInput) UpdateValidationDescriptions(descriptions map[string]string
 //
 // String Slice Validations
 func (s StringInput) IsIn(list []string) StringInput {
-	s.input = s.input.AppendValidation("isin", list)
-	if !validate.IsInSlice(s.stringData, list) {
-		s.input = s.input.AppendError("isin", list)
-	}
+	s.input = s.input.AppendValidation("isin", list, validate.IsInSlice(s.stringData, list))
 	return s
 }
 func (s StringInput) NotIn(list []string) StringInput {
-	s.input = s.input.AppendValidation("notin", list)
-	if validate.NotInSlice(s.stringData, list) {
-		s.input = s.input.AppendError("notin", list)
-	}
+	s.input = s.input.AppendValidation("notin", list, !validate.IsInSlice(s.stringData, list))
 	return s
 }
 
 //
 // String Length Validations
 func (s StringInput) Required() StringInput {
-	s.input = s.input.AppendValidation("required", nil)
-	if !validate.Required(s.stringData) {
-		s.input = s.input.AppendError("required", nil)
-	}
+	s.input = s.input.AppendValidation("required", nil, validate.NotEmpty(s.stringData))
 	return s
 }
-func (s StringInput) IsEmpty() StringInput {
-	s.input = s.input.AppendValidation("empty", nil)
-	if !validate.IsEmpty(s.stringData) {
-		s.input = s.input.AppendError("empty", nil)
-	}
-	return s
-}
-func (s StringInput) IsNotEmpty() StringInput {
-	// Add validaiton to the data.validations map
-	s.input = s.input.AppendValidation("notempty", nil)
-	if !validate.NotEmpty(s.stringData) {
-		s.input = s.input.AppendError("notempty", nil)
-	}
+func (s StringInput) NotEmpty() StringInput {
+	s.input = s.input.AppendValidation("notempty", nil, validate.NotEmpty(s.stringData))
 	return s
 }
 func (s StringInput) IsBetween(start, end int) StringInput {
-	values := []string{strconv.Itoa(start), strconv.Itoa(end)}
-	s.input = s.input.AppendValidation("between", values)
-	if !validate.IsBetween(s.stringData, start, end) {
-		s.input = s.input.AppendError("between", values)
-	}
+	s.input = s.input.AppendValidation("between", []string{strconv.Itoa(start), strconv.Itoa(end)}, validate.IsBetween(s.stringData, start, end))
 	return s
 }
 func (s StringInput) IsLessThan(lt int) StringInput {
-	values := []string{strconv.Itoa(lt)}
-	s.input = s.input.AppendValidation("lessthan", values)
-	if !validate.IsLessThan(s.stringData, lt) {
-		s.input = s.input.AppendError("lessthan", values)
-	}
+	s.input = s.input.AppendValidation("lessthan", []string{strconv.Itoa(lt)}, validate.IsLessThan(s.stringData, lt))
 	return s
 }
 func (s StringInput) IsGreaterThan(gt int) StringInput {
-	values := []string{strconv.Itoa(gt)}
-	s.input = s.input.AppendValidation("greaterthan", values)
-	if !validate.IsGreaterThan(s.stringData, gt) {
-		s.input = s.input.AppendError("greaterthan", values)
-	}
+	s.input = s.input.AppendValidation("greaterthan", []string{strconv.Itoa(gt)}, validate.IsGreaterThan(s.stringData, gt))
 	return s
 }
 
 //
 // Substring Validation
 // WARNING: DOES NOT WORK FOR UTF8 MATCHING
-// This will let through look-alikes
-func (s StringInput) IsContaining(ss string) StringInput {
-	values := []string{ss}
-	s.input = s.input.AppendValidation("iscontaining", values)
-	if !validate.IsContaining(s.stringData, ss) {
-		s.input = s.input.AppendError("iscontaining", values)
-	}
+// This will let through look-alikes, like K
+// and K for kelvin temperature.
+func (s StringInput) Contains(ss string) StringInput {
+	s.input = s.input.AppendValidation("contains", []string{ss}, validate.Contains(s.stringData, ss))
 	return s
 }
 func (s StringInput) NotContaining(ss string) StringInput {
-	values := []string{ss}
-	s.input = s.input.AppendValidation("notcontaiyyning", values)
-	if !validate.NotContaining(s.stringData, ss) {
-		s.input = s.input.AppendError("notcontaining", values)
-	}
+	s.input = s.input.AppendValidation("notcontaining", []string{ss}, !validate.Contains(s.stringData, ss))
 	return s
 }
 
 //
 // Regex Validation
 func (s StringInput) IsRegexMatch(pattern string) StringInput {
-	values := []string{pattern}
-	s.input = s.input.AppendValidation("regexmatch", values)
-	if !validate.IsRegexMatch(s.stringData, pattern) {
-		s.input = s.input.AppendError("regexmatch", values)
-	}
+	s.input = s.input.AppendValidation("regexmatch", []string{pattern}, validate.IsRegexMatch(s.stringData, pattern))
 	return s
 }
 func (s StringInput) NoRegexMatch(pattern string) StringInput {
-	values := []string{pattern}
-	s.input = s.input.AppendValidation("noregexmatch", values)
-	if !validate.NoRegexMatch(s.stringData, pattern) {
-		s.input = s.input.AppendError("noregexmatch", values)
-	}
+	s.input = s.input.AppendValidation("noregexmatch", []string{pattern}, !validate.IsRegexMatch(s.stringData, pattern))
 	return s
 }
 
 //
 // UTF8 Rune Validation
 func (s StringInput) IsUTF8() StringInput {
-	s.input = s.input.AppendValidation("utf8", nil)
-	if !validate.IsUTF8(s.stringData) {
-		s.input = s.input.AppendError("utf8", nil)
-	}
+	s.input = s.input.AppendValidation("utf8", nil, validate.IsUTF8(s.stringData))
 	return s
 }
 func (s StringInput) NoUTF8() StringInput {
-	s.input = s.input.AppendValidation("noutf8", nil)
-	if !validate.NoUTF8(s.stringData) {
-		s.input = s.input.AppendError("noutf8", nil)
-	}
+	s.input = s.input.AppendValidation("noutf8", nil, !validate.IsUTF8(s.stringData))
 	return s
 }
 func (s StringInput) IsUppercase() StringInput {
-	s.input = s.input.AppendValidation("uppercase", nil)
-	if !validate.IsUppercase(s.stringData) {
-		s.input = s.input.AppendError("uppercase", nil)
-	}
+	s.input = s.input.AppendValidation("uppercase", nil, validate.IsUppercase(s.stringData))
 	return s
 }
 func (s StringInput) NoUppercase() StringInput {

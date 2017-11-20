@@ -1,5 +1,59 @@
 ## Developer Notes
 
+
+
+TODO: Try to squash the number of validation needed in valid/string/is, have
+more in valid/string by just returning !IsEmpty for NotEmpty(). This
+will give the valid/string more readability while reducing the code
+footprint of valid/string/is
+
+TODO: Add HasXCharacters (for example, graphic characters, mark
+characters, control characters, etc) that allows passing a number, so
+one can check if a string has 2 punctuation symbols for example or two
+symbol characters. 
+
+
+var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
+
+// isAlphaNum reports whether the byte is an ASCII letter, number, or underscore
+func isAlphaNum(c uint8) bool {
+	return c == '_' || '0' <= c && c <= '9' || 'a' <= c && c <= 'z' || 'A' <= c && c <= 'Z'
+}
+
+
+## Add Validations: 
+strings.HasPrefix(substring)
+strings.HasSuffix(substring)
+path.Dir and path.Clean can be used to validate a path - can use stat to
+check if it exists
+os.ISExist and IsNotExist can be used to find if a file exists yet or
+directory
+Permission is checked with IsPermission
+Executable is IsExecutatable under os
+path.Filepath has more, has own Clean(path string) IsAbs will be useuful
+too
+
+Could validate groups, usernames and such using os stdlib
+
+Can validate against current hostname using os.Hostname()
+
+## Add Transforms:
+strings.ToUpper(string, special bool)
+strings.ToLower(string, special bool)
+strings.ToTitle(string, special, bool)
+strings.TrimSpace(string)
+strings.TrimPrefix(substring)
+strings.TrimSuffix(substring)
+strings.Replace(string, old, new, n int) => present as Replace(Old, New)
+
+for the special path type of string wil probably want:
+os.MkDir can create
+os.MkDirAll will create all necesssary parents of a path
+os.Pipe(fileRead, fileWrite, err)
+os.Rename(old, new)
+os.TmpDir() uses whatever is set in env
+
+==================
 look at text
 
 https://github.com/golang/go/tree/master/src/vendor/golang_org/x/text/secure
