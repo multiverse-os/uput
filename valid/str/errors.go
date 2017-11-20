@@ -34,12 +34,12 @@ func DefaultValidationText() map[string]*validinput.ValidationText {
 			Error:       "length not greater than",
 			Description: "length greater than",
 		},
-		"iscontaining": &validinput.ValidationText{
+		"contains": &validinput.ValidationText{
 			Error:       "not containing substring",
-			Description: "containing substring",
+			Description: "contains substring",
 		},
 		"notcontaining": &validinput.ValidationText{
-			Error:       "containing substring",
+			Error:       "contains substring",
 			Description: "not containing substring",
 		},
 		"regexmatch": &validinput.ValidationText{

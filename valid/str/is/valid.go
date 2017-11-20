@@ -64,7 +64,7 @@ func IsGreaterThan(s string, gt int) bool { return (len(s) > gt) }
 
 //
 // strings.Contains substring value
-func IsContaining(s, ss string) bool { return strings.Contains(s, ss) }
+func Contains(s, ss string) bool { return strings.Contains(s, ss) }
 
 //
 // regexp.Match pattern value

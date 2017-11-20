@@ -134,7 +134,7 @@ func (s StringInput) NoRegexMatch(pattern string) StringInput {
 }
 
 //
-// UTF8 Rune Validation
+// UTF8 Validation
 func (s StringInput) IsUTF8() StringInput {
 	s.input = s.input.AppendValidation("utf8", nil, validate.IsUTF8(s.stringData))
 	return s
@@ -143,182 +143,138 @@ func (s StringInput) NoUTF8() StringInput {
 	s.input = s.input.AppendValidation("noutf8", nil, !validate.IsUTF8(s.stringData))
 	return s
 }
-func (s StringInput) IsUppercase() StringInput {
-	s.input = s.input.AppendValidation("uppercase", nil, validate.IsUppercase(s.stringData))
-	return s
-}
-func (s StringInput) NoUppercase() StringInput {
-	s.input = s.input.AppendValidation("nouppercase", nil)
-	if !validate.NoUppercase(s.stringData) {
-		s.input = s.input.AppendError("nouppercase", nil)
-	}
-	return s
-}
-func (s StringInput) IsLowercase() StringInput {
-	s.input = s.input.AppendValidation("lowercase", nil)
-	if !validate.IsLowercase(s.stringData) {
-		s.input = s.input.AppendError("lowercase", nil)
-	}
-	return s
-}
-func (s StringInput) NoLowercase() StringInput {
-	s.input = s.input.AppendValidation("nolowercase", nil)
-	if !validate.NoLowercase(s.stringData) {
-		s.input = s.input.AppendError("nolowercase", nil)
-	}
-	return s
-}
-func (s StringInput) IsPrintable() StringInput {
-	s.input = s.input.AppendValidation("printable", nil)
-	if !validate.IsPrintable(s.stringData) {
-		s.input = s.input.AppendError("printable", nil)
-	}
-	return s
-}
-func (s StringInput) NoPrintable() StringInput {
-	s.input = s.input.AppendValidation("noprintable", nil)
-	if !validate.NoPrintable(s.stringData) {
-		s.input = s.input.AppendError("noprintable", nil)
-	}
-	return s
-}
+
+//
+// UTF8 Rune Validation
 func (s StringInput) IsAlphabetic() StringInput {
-	s.input = s.input.AppendValidation("alphabetic", nil)
-	if !validate.IsAlphabetic(s.stringData) {
-		s.input = s.input.AppendError("alphabetic", nil)
-	}
+	s.input = s.input.AppendValidation("alphabetic", nil, validate.Alphabetic(s.stringData, true, 0))
 	return s
 }
 func (s StringInput) NoAlphabetic() StringInput {
-	s.input = s.input.AppendValidation("noalphabetic", nil)
-	if !validate.NoAlphabetic(s.stringData) {
-		s.input = s.input.AppendError("noalphabetic", nil)
-	}
+	s.input = s.input.AppendValidation("noalphabetic", nil, validate.Alphabetic(s.stringData, false, 0))
+	return s
+}
+func (s StringInput) MinAlphabeticCount(count uint8) StringInput {
+	s.input = s.input.AppendValidation("alphabetic", nil, validate.Alphabetic(s.stringData, true, count))
 	return s
 }
 func (s StringInput) IsAlphanumeric() StringInput {
-	s.input = s.input.AppendValidation("alphanumeric", nil)
-	if !validate.IsAlphanumeric(s.stringData) {
-		s.input = s.input.AppendError("alphanumeric", nil)
-	}
+	s.input = s.input.AppendValidation("alphanumeric", nil, validate.Alphanumeric(s.stringData, true, 0))
 	return s
 }
 func (s StringInput) NoAlphanumeric() StringInput {
-	s.input = s.input.AppendValidation("noalphanumeric", nil)
-	if !validate.NoAlphanumeric(s.stringData) {
-		s.input = s.input.AppendError("noalphanumeric", nil)
-	}
+	s.input = s.input.AppendValidation("noalphanumeric", nil, validate.Alphanumeric(s.stringData, false, 0))
 	return s
 }
 func (s StringInput) IsNumeric() StringInput {
-	s.input = s.input.AppendValidation("numeric", nil)
-	if !validate.IsNumeric(s.stringData) {
-		s.input = s.input.AppendError("numeric", nil)
-	}
+	s.input = s.input.AppendValidation("numeric", nil, validate.Numeric(s.stringData, true, 0))
 	return s
 }
 func (s StringInput) NoNumeric() StringInput {
-	s.input = s.input.AppendValidation("nonumeric", nil)
-	if !validate.NoNumeric(s.stringData) {
-		s.input = s.input.AppendError("nonumeric", nil)
-	}
+	s.input = s.input.AppendValidation("nonumeric", nil, validate.Numeric(s.stringData, false, 0))
 	return s
 }
-func (s StringInput) IsDigits() StringInput {
-	s.input = s.input.AppendValidation("digits", nil)
-	if !validate.IsDigits(s.stringData) {
-		s.input = s.input.AppendError("digits", nil)
-	}
+func (s StringInput) MinNumericCount(count uint8) StringInput {
+	s.input = s.input.AppendValidation("numeric", nil, validate.Numeric(s.stringData, true, count))
 	return s
 }
-func (s StringInput) NoDigits() StringInput {
-	s.input = s.input.AppendValidation("nodigits", nil)
-	if !validate.NoDigits(s.stringData) {
-		s.input = s.input.AppendError("nodigits", nil)
-	}
+func (s StringInput) IsUppercase() StringInput {
+	s.input = s.input.AppendValidation("uppercase", nil, validate.Uppercase(s.stringData, true, 0))
+	return s
+}
+func (s StringInput) NoUppercase() StringInput {
+	s.input = s.input.AppendValidation("nouppercase", nil, validate.Uppercase(s.stringData, false, 0))
+	return s
+}
+func (s StringInput) MinUppercaseCount(count uint8) StringInput {
+	s.input = s.input.AppendValidation("uppercase", nil, validate.Uppercase(s.stringData, true, count))
+	return s
+}
+func (s StringInput) IsLowercase() StringInput {
+	s.input = s.input.AppendValidation("lowercase", nil, validate.Lowercase(s.stringData, true, 0))
+	return s
+}
+func (s StringInput) NoLowercase() StringInput {
+	s.input = s.input.AppendValidation("nolowercase", nil, validate.Lowercase(s.stringData, false, 0))
+	return s
+}
+func (s StringInput) MinLowercaseCount(count uint8) StringInput {
+	s.input = s.input.AppendValidation("lowercase", nil, validate.Lowercase(s.stringData, true, count))
+	return s
+}
+func (s StringInput) IsPrintable() StringInput {
+	s.input = s.input.AppendValidation("printable", nil, validate.Printable(s.stringData, true, 0))
+	return s
+}
+func (s StringInput) NoPrintable() StringInput {
+	s.input = s.input.AppendValidation("noprintable", nil, validate.Printable(s.stringData, false, 0))
 	return s
 }
 func (s StringInput) IsPunctuation() StringInput {
-	s.input = s.input.AppendValidation("punctuation", nil)
-	if !validate.IsPunctuation(s.stringData) {
-		s.input = s.input.AppendError("punctuation", nil)
-	}
+	s.input = s.input.AppendValidation("punctuation", nil, validate.Punctuation(s.stringData, true, 0))
 	return s
 }
 func (s StringInput) NoPunctuation() StringInput {
-	s.input = s.input.AppendValidation("nopunctuation", nil)
-	if !validate.NoPunctuation(s.stringData) {
-		s.input = s.input.AppendError("nopunctuation", nil)
-	}
+	s.input = s.input.AppendValidation("nopunctuation", nil, validate.Punctuation(s.stringData, false, 0))
+	return s
+}
+func (s StringInput) MinPunctuationCount(count uint8) StringInput {
+	s.input = s.input.AppendValidation("nopunctuation", nil, validate.Punctuation(s.stringData, true, count))
 	return s
 }
 func (s StringInput) IsSymbols() StringInput {
-	s.input = s.input.AppendValidation("symbols", nil)
-	if !validate.IsSymbols(s.stringData) {
-		s.input = s.input.AppendError("symbols", nil)
-	}
+	s.input = s.input.AppendValidation("symbols", nil, validate.Symbols(s.stringData, true, 0))
 	return s
 }
 func (s StringInput) NoSymbols() StringInput {
-	s.input = s.input.AppendValidation("nosymbols", nil)
-	if !validate.NoSymbols(s.stringData) {
-		s.input = s.input.AppendError("nosymbols", nil)
-	}
+	s.input = s.input.AppendValidation("nosymbols", nil, validate.Symbols(s.stringData, false, 0))
 	return s
 }
-func (s StringInput) IsMarkCharacters() StringInput {
-	s.input = s.input.AppendValidation("markchars", nil)
-	if !validate.IsMarkCharacters(s.stringData) {
-		s.input = s.input.AppendError("markchars", nil)
-	}
-	return s
-}
-func (s StringInput) NoMarkCharacters() StringInput {
-	s.input = s.input.AppendValidation("nomarkchars", nil)
-	if !validate.NoMarkCharacters(s.stringData) {
-		s.input = s.input.AppendError("nomarkchars", nil)
-	}
+func (s StringInput) MinSymbolCount(count uint8) StringInput {
+	s.input = s.input.AppendValidation("symbols", nil, validate.Symbols(s.stringData, true, count))
 	return s
 }
 func (s StringInput) IsWhitespaces() StringInput {
-	s.input = s.input.AppendValidation("spaces", nil)
-	if !validate.IsWhitespaces(s.stringData) {
-		s.input = s.input.AppendError("spaces", nil)
-	}
+	s.input = s.input.AppendValidation("spaces", nil, validate.Whitespaces(s.stringData, true, 0))
 	return s
 }
 func (s StringInput) NoWhitespaces() StringInput {
-	s.input = s.input.AppendValidation("nospaces", nil)
-	if !validate.NoWhitespaces(s.stringData) {
-		s.input = s.input.AppendError("nospaces", nil)
-	}
+	s.input = s.input.AppendValidation("nospaces", nil, validate.Whitespaces(s.stringData, false, 0))
 	return s
 }
 func (s StringInput) IsControlCharacters() StringInput {
-	s.input = s.input.AppendValidation("controlchars", nil)
-	if !validate.IsControlCharacters(s.stringData) {
-		s.input = s.input.AppendError("controlchars", nil)
-	}
+	s.input = s.input.AppendValidation("controlchars", nil, validate.ControlCharacters(s.stringData, true, 0))
 	return s
 }
 func (s StringInput) NoControlCharacters() StringInput {
-	s.input = s.input.AppendValidation("nocontrolchars", nil)
-	if !validate.NoControlCharacters(s.stringData) {
-		s.input = s.input.AppendError("nocontrolchars", nil)
-	}
+	s.input = s.input.AppendValidation("nocontrolchars", nil, validate.ControlCharacters(s.stringData, false, 0))
 	return s
 }
 func (s StringInput) IsGraphicCharacters() StringInput {
-	s.input = s.input.AppendValidation("graphicchars", nil)
-	if !validate.IsGraphicCharacters(s.stringData) {
-		s.input = s.input.AppendError("graphicchars", nil)
-	}
+	s.input = s.input.AppendValidation("graphicchars", nil, validate.GraphicCharacters(s.stringData, true, 0))
 	return s
 }
 func (s StringInput) NoGraphicCharacters() StringInput {
-	s.input = s.input.AppendValidation("nographicchars", nil)
-	if !validate.NoGraphicCharacters(s.stringData) {
-		s.input = s.input.AppendError("nographicchars", nil)
-	}
+	s.input = s.input.AppendValidation("nographicchars", nil, validate.GraphicCharacters(s.stringData, false, 0))
+	return s
+}
+func (s StringInput) IsMarkCharacters() StringInput {
+	s.input = s.input.AppendValidation("markchars", nil, validate.MarkCharacters(s.stringData, true, 0))
+	return s
+}
+func (s StringInput) NoMarkCharacters() StringInput {
+	s.input = s.input.AppendValidation("nomarkchars", nil, validate.MarkCharacters(s.stringData, false, 0))
+	return s
+}
+func (s StringInput) IsDigits() StringInput {
+	s.input = s.input.AppendValidation("digits", nil, validate.Digits(s.stringData, true, 0))
+	return s
+}
+func (s StringInput) NoDigits() StringInput {
+	s.input = s.input.AppendValidation("nodigits", nil, validate.Digits(s.stringData, false, 0))
+	return s
+}
+func (s StringInput) MinDigitCount(count uint8) StringInput {
+	s.input = s.input.AppendValidation("nodigits", nil, validate.Digits(s.stringData, true, count))
 	return s
 }
