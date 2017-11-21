@@ -1,11 +1,11 @@
 package validstr
 
 import (
-	"fmt" // DEV
 	"reflect"
 	"strconv"
 
 	validinput "lib/uput/valid/input"
+	inputstatus "lib/uput/valid/input/status/json"
 	validate "lib/uput/valid/str/is"
 )
 
@@ -21,8 +21,10 @@ func If(s string) StringInput {
 	return StringInput{
 		stringData: s,
 		input: validinput.InputData{
-			DataType:       reflect.String,
-			DataTypeName:   "string",
+			DataType:     reflect.String,
+			DataTypeName: "string",
+			Data:         s,
+			// TODO: Only add ValidationText as neccessary to reduce memory usage
 			ValidationText: (DefaultValidationText()),
 		},
 	}
@@ -35,8 +37,7 @@ func (s StringInput) isValid() bool {
 // Validation Output Function
 // ==========================================================================
 func (s StringInput) IsValid() (bool, string, []error) {
-	s.input.PrintValidations()
-	s.input.PrintErrors()
+	inputstatus.PrintJSONValidationStatus(s.input)
 	return s.isValid(), s.stringData, s.input.Errors()
 }
 
@@ -50,23 +51,27 @@ func (s StringInput) IsValid() (bool, string, []error) {
 // Localize Error Message & Validation Descriptions
 // ==========================================================================
 func (s StringInput) ErrorMessage(message string) StringInput {
-	s.input.ValidationText = s.input.UpdateLastValidationText(validinput.ValidationText{Error: message})
-	fmt.Println("test message: ", message)
+	s.input.ValidationText = s.input.SetLastValidationText(validinput.ValidationText{Error: message})
 	return s
 }
-
-func (s StringInput) UpdateValidationText(key string, text validinput.ValidationText) StringInput {
-	s.input.ValidationText = s.input.SetValidationText(key, text)
+func (s StringInput) ValidationDescription(message string) StringInput {
+	s.input.ValidationText = s.input.SetLastValidationText(validinput.ValidationText{Description: message})
 	return s
 }
-
-func (s StringInput) UpdateErrorMessages(errorMessages map[string]string) StringInput {
-	s.input.ValidationText = s.input.SetAllTextOfType("Error", errorMessages)
+func (s StringInput) ValidationText(errorMessage, validationDescription string) StringInput {
+	s.input.ValidationText = s.input.SetLastValidationText(validinput.ValidationText{Description: validationDescription, Error: errorMessage})
 	return s
 }
-
-func (s StringInput) UpdateValidationDescriptions(descriptions map[string]string) StringInput {
-	s.input.ValidationText = s.input.SetAllTextOfType("Description", descriptions)
+func (s StringInput) SetValidationText(key, errorMessage, validationDescription string) StringInput {
+	s.input.ValidationText = s.input.SetValidationText(key, validinput.ValidationText{Description: validationDescription, Error: errorMessage})
+	return s
+}
+func (s StringInput) SetAllErrorMessages(errorMessages map[string]string) StringInput {
+	s.input.ValidationText = s.input.SetAllTextOfType(validinput.ErrorText, errorMessages)
+	return s
+}
+func (s StringInput) SetAllValidationDescriptions(descriptions map[string]string) StringInput {
+	s.input.ValidationText = s.input.SetAllTextOfType(validinput.DescriptionText, descriptions)
 	return s
 }
 

@@ -2,15 +2,20 @@ package validinput
 
 import (
 	"errors"
-	"fmt"
 	"reflect"
-	"strconv"
 )
 
 type ValidationText struct {
 	Error       string
 	Description string
 }
+
+type TextType int
+
+const (
+	ErrorText TextType = iota
+	DescriptionText
+)
 
 type InputData struct {
 	DataType       reflect.Kind
@@ -44,6 +49,15 @@ func (input InputData) Errors() (outputErrors []error) {
 	}
 	return outputErrors
 }
+func (input InputData) ErrorMessages() (errorMessages []string) {
+	for _, inputError := range input.InputErrors() {
+		outputErrors = append(outputErrors, inputError.Error())
+	}
+	return outputErrors
+}
+func (input InputData) ErrorCount() int {
+	return len(input.InputErrors())
+}
 
 //
 // Append Validations/Errors
@@ -62,9 +76,10 @@ func (input InputData) AppendValidation(key string, values []string, isValid boo
 }
 
 //
-// Update Last Added Validation/Error Text
+// Localize Validation Descriptions
 //==================================================================
-func (input InputData) UpdateLastValidationText(text ValidationText) map[string]*ValidationText {
+// Update Last Added Validation/Error Text
+func (input InputData) SetLastValidationText(text ValidationText) map[string]*ValidationText {
 	if len(input.Validations) > 0 {
 		textKey := input.Validations[len(input.Validations)-1].Key
 		lastValidationText, exists := input.ValidationText[textKey]
@@ -81,25 +96,15 @@ func (input InputData) UpdateLastValidationText(text ValidationText) map[string]
 	return input.ValidationText
 }
 
-//
-// Localize Validation Descriptions
-//==================================================================
+// Localize Descriptions and Error Messages
 func (input InputData) SetValidationText(key string, text ValidationText) map[string]*ValidationText {
 	if IsTextKeyValid(key) {
-		currentText, exists := input.ValidationText[key]
-		if !exists {
-			currentText = &ValidationText{}
-		}
-		// Assign if supplied validationText values are valid
+		// Validate: Assign if supplied validationText content valid
 		if IsTextContentValid(text.Error) {
-			currentText.Error = text.Error
+			input.ValidationText[key].Error = text.Error
 		}
 		if IsTextContentValid(text.Description) {
-			currentText.Description = text.Description
-		}
-		// Confirm both Error and Description are assigned
-		if len(currentText.Error) > 0 && len(currentText.Description) > 0 {
-			input.ValidationText[key] = currentText
+			input.ValidationText[key].Description = text.Description
 		}
 	}
 	return input.ValidationText
@@ -109,54 +114,14 @@ func (input InputData) SetAllTextOfType(textType string, textMap map[string]stri
 		validationText := ValidationText{}
 		if IsTextKeyValid(key) {
 			if IsTextContentValid(text) {
-				var err error
-				if textType == "Error" || textType == "Description" {
-					err = SetField(&validationText, textType, text)
-				}
-				if err != nil {
-					fmt.Println("[DEV] Error using SetField() in struct.go:,", err)
-				} else {
-					fmt.Println("validationText map UPDATED: Error:", validationText.Error, ", Validation:", validationText.Description)
-					input.ValidationText = input.SetValidationText(key, validationText)
+				if textType == ErrorText || textType == DescriptionText {
+					err := SetField(&validationText, textType, text)
+					if err == nil {
+						input.ValidationText = input.SetValidationText(key, validationText)
+					}
 				}
 			}
 		}
 	}
 	return input.ValidationText
-}
-
-//
-// Development Printing (remove later, don't assume logging style)
-//==================================================================
-func (input InputData) PrintValidations() {
-	// TODO: Obviously should just be marshalling to JSON and printing
-	// but this is temporary anyways
-	if len(input.Validations) > 0 {
-		fmt.Println("{")
-		fmt.Println("  \"validation_count\": " + strconv.Itoa(len(input.Validations)) + ",")
-		fmt.Println("  \"validations\": {")
-		for _, v := range input.Validations {
-			fmt.Println("    \"" + v.String() + "\",")
-		}
-		fmt.Println("  }")
-		fmt.Println("}")
-	}
-}
-
-//
-// Development Printing (remove later, don't assume logging style)
-//==================================================================
-func (input InputData) PrintErrors() {
-	// TODO: Obviously should just be marshalling to JSON and printing
-	// but this is temporary anyways
-	if len(input.InputErrors()) > 0 {
-		fmt.Println("{")
-		fmt.Println("  \"error_count\": " + strconv.Itoa(len(input.InputErrors())) + ",")
-		fmt.Println("  \"errors\": {")
-		for _, err := range input.InputErrors() {
-			fmt.Println("    \"" + err.Error() + "\",")
-		}
-		fmt.Println("  }")
-		fmt.Println("}")
-	}
 }
