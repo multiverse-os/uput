@@ -5,24 +5,21 @@ import (
 	"reflect"
 )
 
-type ValidationText struct {
-	Error       string
-	Description string
+type InputData struct {
+	DataType    reflect.Kind
+	Data        interface{}
+	Validations []Validation
 }
 
-type TextType int
-
-const (
-	ErrorText TextType = iota
-	DescriptionText
-)
-
-type InputData struct {
-	DataType       reflect.Kind
-	DataTypeName   string
-	Data           interface{}
-	Validations    []Validation
-	ValidationText map[string]*ValidationText
+//
+// Input Validation
+//==================================================================
+func NewInput(data interface{}) (input InputData) {
+	input.DataType = reflect.TypeOf(data).Kind()
+	if input.DataType != reflect.Invalid {
+		input.Data = data
+	}
+	return input
 }
 
 //
@@ -30,6 +27,16 @@ type InputData struct {
 //==================================================================
 func (input InputData) IsValid() bool {
 	return (len(input.InputErrors()) == 0)
+}
+
+//
+// Validations
+//==================================================================
+func (input InputData) ValidationDescriptions() (descriptions []string) {
+	for _, v := range input.Validations {
+		descriptions = append(descriptions, v.Text.Description)
+	}
+	return descriptions
 }
 
 //
@@ -51,9 +58,9 @@ func (input InputData) Errors() (outputErrors []error) {
 }
 func (input InputData) ErrorMessages() (errorMessages []string) {
 	for _, inputError := range input.InputErrors() {
-		outputErrors = append(outputErrors, inputError.Error())
+		errorMessages = append(errorMessages, inputError.Error())
 	}
-	return outputErrors
+	return errorMessages
 }
 func (input InputData) ErrorCount() int {
 	return len(input.InputErrors())
@@ -65,7 +72,7 @@ func (input InputData) ErrorCount() int {
 func (input InputData) AppendValidation(key string, values []string, isValid bool) InputData {
 	if IsTextKeyValid(key) {
 		input.Validations = append(input.Validations, Validation{
-			DataType: input.DataTypeName,
+			DataType: input.DataType.String(),
 			Key:      key,
 			Text:     input.ValidationText[key],
 			Values:   values,
@@ -97,31 +104,27 @@ func (input InputData) SetLastValidationText(text ValidationText) map[string]*Va
 }
 
 // Localize Descriptions and Error Messages
-func (input InputData) SetValidationText(key string, text ValidationText) map[string]*ValidationText {
-	if IsTextKeyValid(key) {
-		// Validate: Assign if supplied validationText content valid
-		if IsTextContentValid(text.Error) {
-			input.ValidationText[key].Error = text.Error
-		}
-		if IsTextContentValid(text.Description) {
-			input.ValidationText[key].Description = text.Description
-		}
+//func (input InputData) SetValidationText(key string, text ValidationText) map[string]*ValidationText {
+//	if IsTextKeyValid(key) {
+//		// Validate: Assign if supplied validationText content valid
+//		if IsTextContentValid(text.Error) {
+//			input.ValidationText[key].Error = text.Error
+//		}
+//		if IsTextContentValid(text.Description) {
+//			input.ValidationText[key].Description = text.Description
+//		}
+//	}
+//	return input.ValidationText
+//}
+func (input InputData) SetAllErrorText(textMap map[string]string) map[string]*ValidationText {
+	for key, text := range textMap {
+		input.SetValidationText(key, ValidationText{Error: text})
 	}
 	return input.ValidationText
 }
-func (input InputData) SetAllTextOfType(textType string, textMap map[string]string) map[string]*ValidationText {
+func (input InputData) SetAllText(textMap map[string]string) map[string]*ValidationText {
 	for key, text := range textMap {
-		validationText := ValidationText{}
-		if IsTextKeyValid(key) {
-			if IsTextContentValid(text) {
-				if textType == ErrorText || textType == DescriptionText {
-					err := SetField(&validationText, textType, text)
-					if err == nil {
-						input.ValidationText = input.SetValidationText(key, validationText)
-					}
-				}
-			}
-		}
+		input.SetValidationText(key, ValidationText{Description: text})
 	}
 	return input.ValidationText
 }
