@@ -15,31 +15,36 @@ type ValidationText struct {
 //
 // Global Loaded Localized Validation Text
 //==================================================================
-var LocalizedText map[ValidationKey]ValidationText
-var TextKeys map[string]ValidationKey
+var GlobalLocalizedText map[ValidationKey]ValidationText
+
+//var TextKeys map[string]ValidationKey
+
+func InitializeLocalizedText() {
+	if GlobalLocalizedText == nil {
+		GlobalLocalizedText = make(map[ValidationKey]ValidationText)
+	}
+}
 
 // Load From map[ValidationKey]ValidationText form used in DefaultText maps
-func LoadLocalizedText(textMap map[ValidationKey]ValidationText) (loadedText int) {
-	if LocalizedText == nil {
-		LocalizedText = make(map[ValidationKey]ValidationText)
-	}
+func LoadGlobalLocalizedText(textMap map[ValidationKey]ValidationText) (loadCount int) {
+	InitializeLocalizedText()
 	for key, text := range textMap {
-		currentText, exists := LocalizedText[key]
+		globalText, exists := GlobalLocalizedText[key]
 		if !exists {
-			currentText = ValidationText{}
-		}
-		if IsTextValid(text.Error) {
-			currentText.Error = text.Error
+			globalText = ValidationText{}
 		}
 		if IsTextValid(text.Description) {
-			currentText.Description = text.Description
+			globalText.Description = text.Description
 		}
-		if IsTextValid(currentText.Description) && IsTextValid(currentText.Error) {
-			LocalizedText[key] = text
-			loadedText++
+		if IsTextValid(text.Error) {
+			globalText.Error = text.Error
+		}
+		if IsTextValidOrEmpty(globalText.Description) && IsTextValidOrEmpty(globalText.Error) {
+			GlobalLocalizedText[key] = globalText
+			loadCount++
 		}
 	}
-	return loadedText
+	return loadCount
 }
 
 //
@@ -80,6 +85,10 @@ func IsTextValid(text string) bool {
 		}
 	}
 	return true
+}
+
+func IsTextValidOrEmpty(text string) bool {
+	return (IsTextValid(text) || len(text) == 0)
 }
 
 //

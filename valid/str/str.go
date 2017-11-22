@@ -20,9 +20,9 @@ type StringInput struct {
 // Validation Input Function
 // ==========================================================================
 func If(s string) StringInput {
-	if len(validinput.LocalizedText) == 0 {
-		loadedText := validinput.LoadLocalizedText((DefaultStringValidationText()))
-		fmt.Println("Loaded (", loadedText, ") Validation Descriptions & Error Messages.")
+	if validinput.GlobalLocalizedText == nil {
+		loadedTextCount := validinput.LoadGlobalLocalizedText((DefaultStringValidationText()))
+		fmt.Println("[DEV] Loaded (", loadedTextCount, ") String Validation Localizations")
 	}
 	return StringInput{
 		stringData: s,

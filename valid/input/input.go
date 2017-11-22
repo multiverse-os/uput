@@ -15,6 +15,7 @@ type InputData struct {
 // Input Validation
 //==================================================================
 func New(data interface{}) (input InputData) {
+	InitializeLocalizedText()
 	input.Kind = reflect.TypeOf(data).Kind()
 	if input.Kind != reflect.Invalid {
 		input.Data = data
@@ -34,7 +35,7 @@ func (input InputData) IsValid() bool {
 //==================================================================
 func (input InputData) ValidationDescriptions() (descriptions []string) {
 	for _, v := range input.Validations {
-		descriptions = append(descriptions, v.Text.Description)
+		descriptions = append(descriptions, v.String())
 	}
 	return descriptions
 }
@@ -71,7 +72,7 @@ func (input InputData) ErrorCount() int {
 //==================================================================
 // TODO: Should Values be []interface{}?
 func (input InputData) AppendValidation(key ValidationKey, values []string, isValid bool) InputData {
-	validationText, exists := LocalizedText[key]
+	validationText, exists := GlobalLocalizedText[key]
 	if !exists {
 		validationText = ValidationText{}
 	}
@@ -92,7 +93,7 @@ func (input InputData) AppendValidation(key ValidationKey, values []string, isVa
 func (input InputData) SetLastValidationText(text ValidationText) InputData {
 	if len(input.Validations) > 0 {
 		lastText := input.Validations[len(input.Validations)-1].Text
-		if IsTextValid(lastText.Error) {
+		if IsTextValid(text.Error) {
 			lastText.Error = text.Error
 		}
 		if IsTextValid(text.Description) {
