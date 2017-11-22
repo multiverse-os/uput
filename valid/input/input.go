@@ -6,7 +6,7 @@ import (
 )
 
 type InputData struct {
-	DataType    reflect.Kind
+	Kind        reflect.Kind
 	Data        interface{}
 	Validations []Validation
 }
@@ -14,9 +14,9 @@ type InputData struct {
 //
 // Input Validation
 //==================================================================
-func NewInput(data interface{}) (input InputData) {
-	input.DataType = reflect.TypeOf(data).Kind()
-	if input.DataType != reflect.Invalid {
+func New(data interface{}) (input InputData) {
+	input.Kind = reflect.TypeOf(data).Kind()
+	if input.Kind != reflect.Invalid {
 		input.Data = data
 	}
 	return input
@@ -69,16 +69,19 @@ func (input InputData) ErrorCount() int {
 //
 // Append Validations/Errors
 //==================================================================
-func (input InputData) AppendValidation(key string, values []string, isValid bool) InputData {
-	if IsTextKeyValid(key) {
-		input.Validations = append(input.Validations, Validation{
-			DataType: input.DataType.String(),
-			Key:      key,
-			Text:     input.ValidationText[key],
-			Values:   values,
-			IsValid:  isValid,
-		})
+// TODO: Should Values be []interface{}?
+func (input InputData) AppendValidation(key ValidationKey, values []string, isValid bool) InputData {
+	validationText, exists := LocalizedText[key]
+	if !exists {
+		validationText = ValidationText{}
 	}
+	input.Validations = append(input.Validations, Validation{
+		Key:     key,
+		Kind:    input.Kind,
+		Values:  values,
+		IsValid: isValid,
+		Text:    validationText,
+	})
 	return input
 }
 
@@ -86,45 +89,46 @@ func (input InputData) AppendValidation(key string, values []string, isValid boo
 // Localize Validation Descriptions
 //==================================================================
 // Update Last Added Validation/Error Text
-func (input InputData) SetLastValidationText(text ValidationText) map[string]*ValidationText {
+func (input InputData) SetLastValidationText(text ValidationText) InputData {
 	if len(input.Validations) > 0 {
-		textKey := input.Validations[len(input.Validations)-1].Key
-		lastValidationText, exists := input.ValidationText[textKey]
-		if exists {
-			if IsTextContentValid(text.Error) {
-				lastValidationText.Error = text.Error
-			}
-			if IsTextContentValid(text.Description) {
-				lastValidationText.Description = text.Description
-			}
-			input.ValidationText[textKey] = lastValidationText
+		lastText := input.Validations[len(input.Validations)-1].Text
+		if IsTextValid(lastText.Error) {
+			lastText.Error = text.Error
+		}
+		if IsTextValid(text.Description) {
+			lastText.Description = text.Description
+		}
+		input.Validations[len(input.Validations)-1].Text = lastText
+	}
+	return input
+}
+func (input InputData) SetValidationText(key ValidationKey, text ValidationText) InputData {
+	prevText, index, exists := input.GetValidation(key)
+	if exists {
+		if !IsTextValid(text.Error) {
+			text.Error = prevText.Error
+		}
+		if !IsTextValid(text.Description) {
+			text.Description = prevText.Description
+		}
+		if prevText.Error != text.Error || prevText.Description != text.Description {
+			input.Validations[index].Text = text
 		}
 	}
-	return input.ValidationText
+	return input
 }
 
-// Localize Descriptions and Error Messages
-//func (input InputData) SetValidationText(key string, text ValidationText) map[string]*ValidationText {
-//	if IsTextKeyValid(key) {
-//		// Validate: Assign if supplied validationText content valid
-//		if IsTextContentValid(text.Error) {
-//			input.ValidationText[key].Error = text.Error
-//		}
-//		if IsTextContentValid(text.Description) {
-//			input.ValidationText[key].Description = text.Description
-//		}
-//	}
-//	return input.ValidationText
-//}
-func (input InputData) SetAllErrorText(textMap map[string]string) map[string]*ValidationText {
+// Helpers to simplify passing strings maps, which would be used by most people loading
+// localization from YAML or JSON.
+func (input InputData) SetErrorMessagesStrings(textMap map[ValidationKey]string) InputData {
 	for key, text := range textMap {
 		input.SetValidationText(key, ValidationText{Error: text})
 	}
-	return input.ValidationText
+	return input
 }
-func (input InputData) SetAllText(textMap map[string]string) map[string]*ValidationText {
+func (input InputData) SetValidationDescriptionsStrings(textMap map[ValidationKey]string) InputData {
 	for key, text := range textMap {
 		input.SetValidationText(key, ValidationText{Description: text})
 	}
-	return input.ValidationText
+	return input
 }

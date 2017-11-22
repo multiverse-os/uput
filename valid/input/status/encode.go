@@ -1,34 +1,34 @@
 package validstatus
 
 import (
+	"encoding/json"
 	"unicode"
-
-	validinput "lib/uput/valid/input"
 )
 
-type encodeOption int
+type EncodeOption int
 
 const (
-	Format encodeOption = iota
+	Format EncodeOption = iota
 	Indent
 )
 
-func Status(status validinput.InputStatus, options map[encodeOption]string) string {
-	var exists bool
+func (s InputStatus) Encode(options map[EncodeOption]string) (string, error) {
 	switch options[Format] {
-	case "json" || "JSON":
-		indention, exists := options[Idention]
+	case "json":
+		indent, exists := options[Indent]
 		if !exists {
-			indention = ""
+			indent = ""
 		} else {
-			for _, c := range indention {
+			for _, c := range indent {
 				if !unicode.IsSpace(c) {
-					indention = ""
+					indent = ""
 					break
 				}
 			}
 		}
-		return jsonStatus(status, indention)
+		return s.encodeJSON(indent)
+	default:
+		return "", nil
 	}
 	// TODO: Add YAML encoding of status
 	//case "yaml" || "YAML":
@@ -36,6 +36,13 @@ func Status(status validinput.InputStatus, options map[encodeOption]string) stri
 	//case "xml" || "XML":
 }
 
-func Input(input validinput.InputData, options map[string]string) string {
-
+func (s InputStatus) encodeJSON(indent string) (string, error) {
+	output, err := json.MarshalIndent(s, "", indent)
+	if err == nil {
+		//err = json.Indent(&output, []byte(inputJSON), "", indent)
+		//if err == nil {
+		return string(output), err
+		//}
+	}
+	return "", err
 }

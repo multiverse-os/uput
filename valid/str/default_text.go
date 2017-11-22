@@ -4,177 +4,211 @@ import (
 	validinput "lib/uput/valid/input"
 )
 
-// Should this be in str/text to avoid loading any unncessary data for developers with
-// their own localized strings?
-func DefaultStringText() map[validinput.ValidationKey]validinput.Text {
-	return map[string]ValidationText{
-		In: ValidationText{
+func GetDefeaultValidationTextString(key validinput.ValidationKey) validinput.ValidationText {
+	return (DefaultStringValidationText())[key]
+}
+
+func DefaultStringValidationText() map[validinput.ValidationKey]validinput.ValidationText {
+	return map[validinput.ValidationKey]validinput.ValidationText{
+		In: validinput.ValidationText{
 			Error:       "not included in",
 			Description: "is included in",
 		},
-		NotIn: ValidationText{
+		NotIn: validinput.ValidationText{
 			Error:       "included in",
 			Description: "not included in",
 		},
-		Required: ValidationText{
+		Required: validinput.ValidationText{
 			Error:       "is not present",
 			Description: "is requred",
 		},
-		Empty: ValidationText{
+		Empty: validinput.ValidationText{
 			Error:       "is not empty",
 			Description: "is empty",
 		},
-		NotEmpty: ValidationText{
+		NotEmpty: validinput.ValidationText{
 			Error:       "is empty",
 			Description: "is not empty",
 		},
-		Blank: ValidationText{
+		Blank: validinput.ValidationText{
 			Error:       "is not blank",
 			Description: "is blank",
 		},
-		NotBlank: ValidationText{
+		NotBlank: validinput.ValidationText{
 			Error:       "is blank",
 			Description: "is not blank",
 		},
-		Between: ValidationText{
+		Between: validinput.ValidationText{
 			Error:       "length not between",
 			Description: "length is between",
 		},
-		LessThan: ValidationText{
+		LessThan: validinput.ValidationText{
 			Error:       "length not less than",
 			Description: "length less than",
 		},
-		GreaterThan: ValidationText{
+		GreaterThan: validinput.ValidationText{
 			Error:       "length not greater than",
 			Description: "length greater than",
 		},
-		Contains: ValidationText{
+		Contains: validinput.ValidationText{
 			Error:       "not containing substring",
 			Description: "contains substring",
 		},
-		NotContaining: ValidationText{
+		NotContaining: validinput.ValidationText{
 			Error:       "contains substring",
 			Description: "not containing substring",
 		},
-		RegexMatch: ValidationText{
+		RegexMatch: validinput.ValidationText{
 			Error:       "has no regex matches",
 			Description: "matches regex pattern",
 		},
-		NoRegexMatch: ValidationText{
+		NoRegexMatch: validinput.ValidationText{
 			Error:       "matches regex pattern",
 			Description: "has no regex matches",
 		},
-		UTF8: ValidationText{
+		UTF8: validinput.ValidationText{
 			Error:       "only UTF8 characters",
 			Description: "contains no UTF8 characters",
 		},
-		NoUTF8: ValidationText{
+		NoUTF8: validinput.ValidationText{
 			Error:       "only UTF8 characters",
 			Description: "contains no UTF8 characters",
 		},
-		Uppercase: ValidationText{
+		Uppercase: validinput.ValidationText{
 			Error:       "contains lowercase characters",
 			Description: "only uppercase characters",
 		},
-		NoUppercase: ValidationText{
+		NoUppercase: validinput.ValidationText{
 			Error:       "has lowercase characters",
 			Description: "only lowercase characters",
 		},
-		Lowercase: ValidationText{
+		MinUppercase: validinput.ValidationText{
+			Error:       "below minimum uppercase character count",
+			Description: "minimum uppercase character count",
+		},
+		Lowercase: validinput.ValidationText{
 			Error:       "has uppercase characters",
 			Description: "only lowercase characters",
 		},
-		NoLowercase: ValidationText{
+		NoLowercase: validinput.ValidationText{
 			Error:       "has lowercase characters",
 			Description: "only uppercase characters",
 		},
-		Printable: ValidationText{
+		MinLowercase: validinput.ValidationText{
+			Error:       "below minimum lowercase character count",
+			Description: "minimum lowercase character count",
+		},
+		Printable: validinput.ValidationText{
 			Error:       "has non-printable characters",
 			Description: "only printable characters",
 		},
-		NoPrintable: ValidationText{
+		NoPrintable: validinput.ValidationText{
 			Error:       "has printable characters",
 			Description: "only non-printable characters",
 		},
-		Alphabetic: ValidationText{
+		Alphabetic: validinput.ValidationText{
 			Error:       "has non-alphabetic characters",
 			Description: "only alphabetic characters",
 		},
-		NoAlphabetic: ValidationText{
+		NoAlphabetic: validinput.ValidationText{
 			Error:       "has alphabetic characters",
 			Description: "only non-alphabetic characters",
 		},
-		Alphanumeric: ValidationText{
+		MinAlphabetic: validinput.ValidationText{
+			Error:       "below minimum alphabetic character count",
+			Description: "minimum alphabetic character count",
+		},
+		Alphanumeric: validinput.ValidationText{
 			Error:       "has non-alphanumeric characters",
 			Description: "only alphanumeric characters",
 		},
-		NoAlphanumeric: ValidationText{
+		NoAlphanumeric: validinput.ValidationText{
 			Error:       "has alphanumeric characters",
 			Description: "only non-alphanumeric characters",
 		},
-		Numeric: ValidationText{
+		MinAlphanumeric: validinput.ValidationText{
+			Error:       "below minimum alphanumeric character count",
+			Description: "minimum alphanumeric character count",
+		},
+		Numeric: validinput.ValidationText{
 			Error:       "has non-numeric characters",
 			Description: "only numeric characters",
 		},
-		NoNumeric: ValidationText{
+		NoNumeric: validinput.ValidationText{
 			Error:       "has numeric characters",
 			Description: "only non-numeric characters",
 		},
-		Digits: ValidationText{
-			Error:       "has non-digit characters",
-			Description: "only digits",
+		MinNumeric: validinput.ValidationText{
+			Error:       "below minimum numeric character count",
+			Description: "minimum numeric character count",
 		},
-		NoDigits: ValidationText{
-			Error:       "has digits characters",
+		Digits: validinput.ValidationText{
+			Error:       "has non-digits",
+			Description: "only digit characters",
+		},
+		NoDigits: validinput.ValidationText{
+			Error:       "has digit characters",
 			Description: "only non-digits",
 		},
-		Symbols: ValidationText{
+		MinDigits: validinput.ValidationText{
+			Error:       "below minimum digit character count",
+			Description: "minimum digit character count",
+		},
+		Symbols: validinput.ValidationText{
 			Error:       "has non-symbol characters",
 			Description: "only symbols",
 		},
-		NoSymbols: ValidationText{
-			Error:       "has symbols characters",
+		NoSymbols: validinput.ValidationText{
+			Error:       "has symbols",
 			Description: "only non-symbol characters",
 		},
-		Punctuation: ValidationText{
+		MinSymbols: validinput.ValidationText{
+			Error:       "below minimum symbol character count",
+			Description: "minimum symbol character count",
+		},
+		Punctuation: validinput.ValidationText{
 			Error:       "has non-punctuation characters",
 			Description: "only punctuation",
 		},
-		NoPunctuation: ValidationText{
+		NoPunctuation: validinput.ValidationText{
 			Error:       "has punctuation characters",
 			Description: "only non-punctuation characters",
 		},
-		Marks: ValidationText{
-			Error:       "has non-mark characters",
+		MinPunctuation: validinput.ValidationText{
+			Error:       "below minimum punctuation character count",
+			Description: "minimum punctuation character count",
+		},
+		Marks: validinput.ValidationText{
+			Error:       "has non-mark UTF8 characters",
 			Description: "only UTF8 mark characters",
 		},
-		NoMarks: ValidationText{
-			Error:       "has mark characters",
-			Description: "no UTF8 mark characters",
+		NoMarks: validinput.ValidationText{
+			Error:       "has UTF8 mark characters",
+			Description: "only non-mark UTF8 characters",
 		},
-		Graphics: ValidationText{
-			Error:       "has non-graphic characters",
-			Description: "no UTF8 graphic characters",
-		},
-		NoGraphics: ValidationText{
-			Error:       "has graphic characters",
+		Graphics: validinput.ValidationText{
+			Error:       "has non-graphic UTF8 characters",
 			Description: "only UTF8 graphic characters",
 		},
-		Controls: ValidationText{
-			Error:       "has control characters",
+		NoGraphics: validinput.ValidationText{
+			Error:       "has graphic characters",
+			Description: "only non-graphic UTF8 characters",
+		},
+		Controls: validinput.ValidationText{
+			Error:       "has non-control UTF8 characters",
 			Description: "only UTF8 control characters",
 		},
-		NoControls: ValidationText{
-			Error:       "has non-control characters",
-			Description: "only UTF8 non-control characters",
+		NoControls: validinput.ValidationText{
+			Error:       "has UTF8 control characters",
+			Description: "only non-control UTF8 characters",
 		},
-		Spaces: ValidationText{
+		Spaces: validinput.ValidationText{
 			Error:       "has non-whitespace characters",
 			Description: "only whitespace characters",
 		},
-		NoSpaces: ValidationText{
+		NoSpaces: validinput.ValidationText{
 			Error:       "has whitespace characters",
-			Description: "no whitespace characters",
+			Description: "only non-whitespace characters",
 		},
 	}
 }

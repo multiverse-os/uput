@@ -8,7 +8,7 @@ import (
 
 	// DEV
 	"fmt"
-	encodeinput "lib/uput/valid/input/encode"
+	inputstatus "lib/uput/valid/input/status"
 )
 
 type StringInput struct {
@@ -20,6 +20,10 @@ type StringInput struct {
 // Validation Input Function
 // ==========================================================================
 func If(s string) StringInput {
+	if len(validinput.LocalizedText) == 0 {
+		loadedText := validinput.LoadLocalizedText((DefaultStringValidationText()))
+		fmt.Println("Loaded (", loadedText, ") Validation Descriptions & Error Messages.")
+	}
 	return StringInput{
 		stringData: s,
 		input:      validinput.New(s),
@@ -33,9 +37,16 @@ func (s StringInput) isValid() bool {
 // Validation Output Function
 // ==========================================================================
 func (s StringInput) IsValid() (bool, string, []error) {
-	status := encode.Status((s.input.Status()), map[string]string{encode.Format: "json", encode.Indention: "  "})
-	fmt.Println(status)
-
+	onlyErrors := false
+	statusJSON, err := inputstatus.GetStatus(s.input, onlyErrors).Encode(
+		map[inputstatus.EncodeOption]string{
+			inputstatus.Format: "json",
+			inputstatus.Indent: "  ",
+		},
+	)
+	if err == nil {
+		fmt.Println(statusJSON)
+	}
 	return s.isValid(), s.stringData, s.input.Errors()
 }
 
@@ -49,27 +60,31 @@ func (s StringInput) IsValid() (bool, string, []error) {
 // Localize Error Message & Validation Descriptions
 // ==========================================================================
 func (s StringInput) ErrorMessage(message string) StringInput {
-	s.input.ValidationText = s.input.SetLastValidationText(validinput.ValidationText{Error: message})
+	s.input = s.input.SetLastValidationText(validinput.ValidationText{Error: message})
 	return s
 }
 func (s StringInput) ValidationDescription(message string) StringInput {
-	s.input.ValidationText = s.input.SetLastValidationText(validinput.ValidationText{Description: message})
+	s.input = s.input.SetLastValidationText(validinput.ValidationText{Description: message})
 	return s
 }
-func (s StringInput) ValidationText(errorMessage, validationDescription string) StringInput {
-	s.input.ValidationText = s.input.SetLastValidationText(validinput.ValidationText{Description: validationDescription, Error: errorMessage})
+func (s StringInput) ValidationText(description, message string) StringInput {
+	s.input = s.input.SetLastValidationText(validinput.ValidationText{Description: message})
 	return s
 }
-func (s StringInput) SetValidationText(key, errorMessage, validationDescription string) StringInput {
-	s.input.ValidationText = s.input.SetValidationText(key, validinput.ValidationText{Description: validationDescription, Error: errorMessage})
+func (s StringInput) SetValidationText(key, message, description string) StringInput {
+	s.input = s.input.SetValidationText((StringToValidationKey(key)), validinput.ValidationText{Description: description, Error: message})
 	return s
 }
-func (s StringInput) SetAllErrorMessages(errorMessages map[string]string) StringInput {
-	s.input.ValidationText = s.input.SetAllTextOfType(validinput.ErrorText, errorMessages)
+func (s StringInput) ErrorMessages(errorMessages map[string]string) StringInput {
+	for key, message := range errorMessages {
+		s.input = s.input.SetValidationText((StringToValidationKey(key)), validinput.ValidationText{Error: message})
+	}
 	return s
 }
-func (s StringInput) SetAllValidationDescriptions(descriptions map[string]string) StringInput {
-	s.input.ValidationText = s.input.SetAllTextOfType(validinput.DescriptionText, descriptions)
+func (s StringInput) ValidationDescriptions(descriptions map[string]string) StringInput {
+	for key, description := range descriptions {
+		s.input = s.input.SetValidationText((StringToValidationKey(key)), validinput.ValidationText{Description: description})
+	}
 	return s
 }
 
@@ -80,7 +95,7 @@ func (s StringInput) SetAllValidationDescriptions(descriptions map[string]string
 //
 // String Slice Validations
 func (s StringInput) IsIn(list []string) StringInput {
-	s.input = s.input.AppendValidation(IsIn, list, validate.IsInSlice(s.stringData, list))
+	s.input = s.input.AppendValidation(In, list, validate.IsInSlice(s.stringData, list))
 	return s
 }
 func (s StringInput) NotIn(list []string) StringInput {
