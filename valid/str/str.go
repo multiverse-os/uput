@@ -5,10 +5,6 @@ import (
 
 	validinput "lib/uput/valid/input"
 	validate "lib/uput/valid/str/is"
-
-	// DEV
-	"fmt"
-	inputstatus "lib/uput/valid/input/status"
 )
 
 type StringInput struct {
@@ -21,8 +17,7 @@ type StringInput struct {
 // ==========================================================================
 func If(s string) StringInput {
 	if validinput.GlobalLocalizedText == nil {
-		loadedTextCount := validinput.LoadGlobalLocalizedText((DefaultStringValidationText()))
-		fmt.Println("[DEV] Loaded (", loadedTextCount, ") String Validation Localizations")
+		validinput.LoadGlobalLocalizedText((DefaultStringValidationText()))
 	}
 	return StringInput{
 		stringData: s,
@@ -37,16 +32,16 @@ func (s StringInput) isValid() bool {
 // Validation Output Function
 // ==========================================================================
 func (s StringInput) IsValid() (bool, string, []error) {
-	onlyErrors := false
-	statusJSON, err := inputstatus.GetStatus(s.input, onlyErrors).Encode(
-		map[inputstatus.EncodeOption]string{
-			inputstatus.Format: "json",
-			inputstatus.Indent: "  ",
-		},
-	)
-	if err == nil {
-		fmt.Println(statusJSON)
-	}
+	//onlyErrors := false
+	//statusJSON, err := inputstatus.GetStatus(s.input, onlyErrors).Encode(
+	//	map[inputstatus.EncodeOption]string{
+	//		inputstatus.Format: "json",
+	//		inputstatus.Indent: "  ",
+	//	},
+	//)
+	//if err == nil {
+	//	fmt.Println(statusJSON)
+	//}
 	return s.isValid(), s.stringData, s.input.Errors()
 }
 
